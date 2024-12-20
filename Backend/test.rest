@@ -1,0 +1,17 @@
+GET http://localhost:3002/shop
+
+###
+GET http://localhost:3001/shop/trending
+
+###
+POST  http://localhost:3001/cart
+
+{
+  "productName": "Sample Product",
+  "harga": 10000,
+  "lokasi": "Jakarta",
+  "terjual": 10,
+  "rating": 4.5,
+  "stok": 20,
+  "jumlah": 1
+}

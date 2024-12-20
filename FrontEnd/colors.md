@@ -1,0 +1,6 @@
+Sleek & Futuristic (Dark Mode Inspired)
+- Primary: #212121 (Charcoal)
+- Secondary: #424242 (Dark Gray)
+- Accent: #FF4081 (Neon Pink)
+- Background: #121212 (Black)
+- Text: #FFFFFF (White)
