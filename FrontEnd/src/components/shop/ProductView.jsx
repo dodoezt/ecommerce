@@ -25,7 +25,6 @@ const ProductView = () => {
     const [spesifikasi, setSpesifikasi] = useState('');
     const [jumlah, setJumlah] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
-    const [item, setItem] = ([]);
     const currentJumlah = jumlah;
     const { id } = useParams();
 
@@ -46,7 +45,6 @@ const ProductView = () => {
             setKondisi(response.data.kondisi);
             setMinPembelian(response.data.min_pembelian);
             setSpesifikasi(response.data.spesifikasi);
-            setItem(response);
         } catch (err) {
             console.log(err)
         }
@@ -68,9 +66,7 @@ const ProductView = () => {
                 stok,
                 jumlah
             });
-            
             emitter.emit('cartUpdated');
-            
             const cartNotify = document.getElementById('cartNotify');
             cartNotify.classList.replace('hidden', 'flex');
             setTimeout(() => {

@@ -3,7 +3,7 @@ import { FaWhatsappSquare } from "react-icons/fa";
 import { AiFillTikTok } from "react-icons/ai";
 import { FaGithubSquare } from "react-icons/fa";
 import { FaLinkedin } from "react-icons/fa";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
     return (
