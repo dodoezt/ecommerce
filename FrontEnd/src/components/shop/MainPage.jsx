@@ -9,8 +9,6 @@ import { IoIosArrowDropleftCircle } from "react-icons/io";
 import { IoIosArrowDroprightCircle } from "react-icons/io";
 import { SiFireship } from "react-icons/si";
 
-
-
 const MainPage = () => {
     
     const [product, setProduct] = useState([]);
@@ -20,11 +18,44 @@ const MainPage = () => {
     const [visibleCount, setVisibleCount] = useState(15); 
     const [visibleCountTrending, setVisibleCountTrending] = useState(5); 
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [increment, setIncrement] = useState(0);
+    const [trendingIncrement, setTrendingIncrement] = useState(0);
     const categories = ["Handphone", "Laptop", "Tablet", "Kamera", "Earbuds"];
     
     useEffect(() => {
         fetchProduct();
         getTrendingProduct();
+
+        const updateVisibleCount = () => {
+            const screenWidth = window.innerWidth;
+            if (screenWidth >= 1280) {
+                setVisibleCount(15); // For large screens (e.g., desktops)
+                setVisibleCountTrending(5);
+                setIncrement(10);
+                setTrendingIncrement(5);
+            } else if (screenWidth >= 768) {
+                setVisibleCount(12); // For medium screens (e.g., tablets)
+                setVisibleCountTrending(4);
+                setIncrement(6);
+                setTrendingIncrement(4);
+            } else {
+                setVisibleCount(8); // For small screens (e.g., phones)
+                setVisibleCountTrending(4);
+                setIncrement(8);
+                setTrendingIncrement(4);
+            }
+        };
+    
+        // Set initial counts
+        updateVisibleCount();
+    
+        // Add event listener for resize
+        window.addEventListener("resize", updateVisibleCount);
+    
+        // Clean up the event listener
+        return () => {
+            window.removeEventListener("resize", updateVisibleCount);
+        };
     }, []);
     
     const getTrendingProduct = async () => {
@@ -187,19 +218,17 @@ const MainPage = () => {
     
       
     const showMoreProducts = () => {
-        const increment = 10;
         setVisibleCount((prevCount) => prevCount + increment);
     };
 
     const showMoreTrendingProducts = () => {
-        const increment = 5;
-        setVisibleCountTrending((prevCount) => prevCount + increment);
+        setVisibleCountTrending((prevCount) => prevCount + trendingIncrement);
     };
 
 
     return (
         <div className="w-full px-5 h-auto flex flex-col justify-center items-center mt-5">
-            <div className="w-full h-auto flex justify-center items-center mt-24">
+            <div className="w-full h-auto flex justify-center items-center xl:mt-24 mt-16">
                 <div className="w-[90%] relative flex justify-center items-center" 
                 onMouseOver={handleMouseOver}
                 onMouseOut={handleMouseOut}
@@ -223,27 +252,28 @@ const MainPage = () => {
                     <button 
                         id='prevBtn'
                         onClick={goToPrev}
-                        className="prev absolute text-white p-2 -left-5 opacity-0 pointer-events-none transition-all ease-in duration-200"><IoIosArrowDropleftCircle size={35}/></button>
+                        className="prev absolute text-white p-2 -left-5 opacity-0 pointer-events-none transition-all ease-in duration-200 xl:text-3xl text-xl"><IoIosArrowDropleftCircle/></button>
                     <button
                         id='nextBtn'
                         onClick={goToNext}
-                        className="next absolute text-white p-2 -right-5 opacity-0 pointer-events-none transition-all ease-in duration-200"><IoIosArrowDroprightCircle size={35}/></button>
+                        className="next absolute text-white p-2 -right-5 opacity-0 pointer-events-none transition-all ease-in duration-200 xl:text-3xl text-xl"><IoIosArrowDroprightCircle
+                        /></button>
                 </div>
             </div>
             <div className="w-[95%] flex flex-col justify-center items-end p-5 mt-10 m-auto rounded-xl bg-[#424242]">
                 <header className="w-full mb-4 flex justify-start items-center relative ">
-                    <div className="relative h-auto w-auto flex justify-center items-center bg-[#424242] z-10">
-                        <SiFireship className="text-[#FF4081] z-10" size={25}/>
-                        <h1 className="text-[#FFFFFF] text-3xl font-Montserrat font-semibold relative">Yang Lagi Trending Nih</h1> 
+                    <div className="relative h-auto w-auto flex justify-center items-center bg-[#424242] z-10 gap-1">
+                        <SiFireship className="text-[#FF4081] z-10 xl:text-2xl text-lg"/>
+                        <h1 className="text-[#FFFFFF] xl:text-3xl text-lg font-Montserrat font-semibold relative">Yang Lagi Trending Nih</h1> 
                     </div> 
                 </header>
                 <main className="w-full flex flex-col justify-start items-center ">
-                    <div className="w-auto grid grid-cols-5 gap-7">
+                    <div className="w-auto grid xl:grid-cols-5 md:grid-cols-4 grid-cols-2 gap-7 ">
                         {trendingProduct.slice(0, visibleCountTrending).map((product) => {
                             return (
                                 <Link to={`product/${product.id}`}
                                     key={product.id}
-                                    className="flex-1 aspect-video flex justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden gap-1 relative"
+                                    className="aspect-video flex justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden xl:gap-1 relative"
                                 >
                                     <div className="h-full aspect-square overflow-hidden bg-white">
                                         <img
@@ -252,28 +282,32 @@ const MainPage = () => {
                                             className="w-full h-full object-contain object-center"
                                         />
                                     </div>
-                                    <div className="w-full h-auto px-2 text-start no-wrap overflow-hidden flex flex-col items-start justify-start gap-[2px]">
-                                        <h1 className="text-[#FFFFFF] text-[0.8rem] line-clamp-1">{product.nama}</h1>
+                                    <div className="w-full h-auto xl:px-2 px-1 text-start no-wrap overflow-hidden flex flex-col items-start justify-start gap-[2px]">
+                                        <h1 className="text-[#FFFFFF] xl:text-[0.8rem] lg:text-[0.7rem] text-[0.5rem] line-clamp-1">{product.nama}</h1>
                                         <div className="w-full flex items-center justify-start gap-[3px]">
-                                            <h1 className="text-[0.9rem] font-semibold text-[#FF4081]">Rp</h1>
-                                            <h1 className="text-[0.9rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga)}</h1>
+                                            <h1 className="xl:text-[0.9rem] lg:text-[0.75rem] text-[0.6rem] font-semibold text-[#FF4081]">Rp</h1>
+                                            <h1 className="xl:text-[0.9rem] lg:text-[0.75rem] text-[0.6rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga)}</h1>
                                         </div>
                                         <div className="w-auto flex items-center justify-start gap-1">
-                                            <FaStar size={10} className="text-yellow-400" />
-                                            <h1 className="flex items-center gap-1 text-sm text-[#FFFFFF]">{product.rating}</h1>
+                                            <FaStar className="text-yellow-400 xl:text-base text-[0.6rem]" />
+                                            <h1 className="flex items-center gap-1 xl:text-sm text-[0.6rem] text-[#FFFFFF]">{product.rating}</h1>
                                         </div>
-                                        <div className="w-full flex items-center justify-between">
+                                        <div className="w-full xl:flex lg:flex items-center justify-between hidden">
                                             <div className="w-auto flex justify-start items-center gap-1">
-                                                <GrMapLocation className="text-[#FF4081]" size={15} />
-                                                <h1 className="text-white text-xs">{product.lokasi}</h1>
+                                                <GrMapLocation className="text-[#FF4081] xl:text-base text-[0.7rem]"/>
+                                                <h1 className="text-white xl:text-xs text-[0.5rem]">{product.lokasi}</h1>
                                             </div>
-                                            <div className="w-auto flex justify-end items-center gap-1">
+                                            <div className="w-auto hidden xl:flex justify-end items-center gap-1">
                                                 <h1 className="text-[#FFFFFF] text-[0.775rem] italic">{formatNumber(product.terjual)}</h1>
                                                 <h1 className="text-[#FF4081] text-[0.775rem]">terjual</h1>
                                             </div>
                                         </div>
+                                        <div className="w-auto xl:hidden flex justify-end items-center gap-1">
+                                            <h1 className="text-[#FFFFFF] xl:text-[0.775rem] text-[0.5rem] italic">{formatNumber(product.terjual)}</h1>
+                                            <h1 className="text-[#FF4081] xl:text-[0.775rem] text-[0.5rem]">terjual</h1>
+                                        </div>
                                     </div>
-                                    <SiFireship className="absolute right-1 top-1 text-[#FF4081]" size={20}/>
+                                    <SiFireship className="absolute right-1 top-1 text-[#FF4081] xl:text-xl text-xs"/>
                                 </Link>
                             );
                         })}
@@ -291,58 +325,59 @@ const MainPage = () => {
                 </main>
             </div>
             <div className="w-full px-5 h-auto flex flex-col justify-center items-center mt-5">
-
                 <header className="w-full flex justify-start items-center mb-4 relative border-b-2 border-[#FF4081]">
-                    <h1 className="headerProduct p-2 flex justify-center items-center text-[#FFFFFF] text-3xl font-Montserrat font-semibold z-10 relative">Produk Kami</h1>
+                    <h1 className="headerProduct p-2 flex justify-center items-center text-[#FFFFFF] xl:text-3xl text-xl font-Montserrat font-semibold z-10 relative">Produk Kami</h1>
                 </header>
-                <main className="w-full flex justify-between items-start relative">
-                    <div className="w-1/5 flex flex-col justify-center items-center p-3 rounded-xl bg-[#212121] sticky top-24">
+                <main className="w-full flex flex-col xl:flex-row sm:flex-row justify-between items-start relative">
+                    <div className="xl:w-1/5 sm:w-1/4 w-full flex flex-col justify-center items-center p-3 rounded-xl bg-[#212121] xl:sticky sm:sticky xl:top-24 sm:top-20">
                         <header className="w-full flex justify-start items-center border-b-2 border-white">
-                            <h1 className="filterHeader font-Poppins text-xl text-white relative">Filter Produk</h1>
+                            <h1 className="filterHeader font-Poppins xl:text-xl text-base text-white relative">Filter Produk</h1>
                         </header>
-                        <main className="w-full flex flex-col justify-center items-start mt-2 gap-3">
-                            <h1 className="font-Poppins text-base text-[#FF4081]">Kategori</h1>
-                        {categories.map((category) => (
-                                <div key={category} className="w-full flex items-center justify-start gap-2">
-                                    <input type="checkbox" name="kategori" className="appearance-none h-5 w-5 bg-[#212121] border-2 border-[#FF4081] checked:bg-[#FF4081] rounded-md" 
-                                    value={category}
-                                    checked={selectedCategories.includes(category)}
-                                    onChange={() => handleCheckboxChange(category)}
-                                    />
-                                    <span className="text-white text-sm font-Poppins">{category}</span>
-                                </div>
-                        ))}
+                        <main className="w-full flex flex-col justify-center items-start mt-2 xl:gap-3 gap-1">
+                            <h1 className="font-Poppins xl:text-base sm:text-base text-sm text-[#FF4081]">Kategori</h1>
+                            <div className="w-full xl:gap-3 xl:flex xl:flex-col xl:justify-center xl:items-start sm:gap-1 sm:flex sm:flex-col sm:justify-center sm:items-start grid grid-cols-2 gap-[1px]">
+                                {categories.map((category) => (
+                                    <div key={category} className="xl:w-full sm:w-full w-auto flex items-center justify-start gap-2">
+                                        <input type="checkbox" name="kategori" className="appearance-none xl:h-5 xl:w-5 sm:h-4 sm:w-4 h-3 w-3 bg-[#212121] border-2 border-[#FF4081] checked:bg-[#FF4081] xl:rounded-md rounded-full" 
+                                        value={category}
+                                        checked={selectedCategories.includes(category)}
+                                        onChange={() => handleCheckboxChange(category)}
+                                        />
+                                        <span className="text-white xl:text-sm sm:text-base text-[0.7rem] font-Poppins">{category}</span>
+                                    </div>
+                                ))}
+                            </div>
                         <button className="p-2 px-5 bg-[#FF4081] font-Poppins font-meidum text-[#FFFFFF] transition-all ease duration-200 rounded-lg hover:bg-[#ff4080b1]"
                         onClick={() => fetchProduct()}
                         >Terapkan</button>
                         </main>
                     </div>
-                    <div className="w-4/5 flex flex-col justify-start items-center">
-                        <div className="w-auto grid grid-cols-5 gap-7">
+                    <div className="w-full flex flex-col justify-start items-center xl:mt-0 mt-3">
+                        <div className="w-auto grid xl:grid-cols-5 lg:grid-cols-4 gap-7 sm:grid-cols-3 grid-cols-2">
                             {product.slice(0, visibleCount).map((product) => {
                                 return (
-                                <Link to={`product/${product.id}`} key={product.id} className="w-44 aspect-[3/5] flex flex-col justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden gap-1">
+                                <Link to={`product/${product.id}`} key={product.id} className="xl:w-44 w-36 xl:aspect-[3/5] aspect-[2/3] flex flex-col justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden gap-1">
                                     <div className="w-full aspect-square overflow-hidden bg-white">
                                         <img src={`/imgProduct/img${product.id}.jpeg`} alt={product.nama} className="w-full h-full object-contain object-center"/>
                                     </div>
-                                    <div className="w-full h-auto px-2 text-start no-wrap overflow-hidden flex flex-col itmes-start justify-start gap-[2px]">
-                                        <h1 className="text-[#FFFFFF] text-[0.8rem] line-clamp-1">{product.nama}</h1>
+                                    <div className="w-full h-auto xl:px-2 px-2 text-start no-wrap overflow-hidden flex flex-col itmes-start justify-start xl:gap-[2px] gap-[1px]">
+                                        <h1 className="text-[#FFFFFF] xl:text-[0.8rem] text-[0.6rem] line-clamp-1">{product.nama}</h1>
                                         <div className="w-full flex items-center justify-start gap-[3px]">
-                                            <h1 className="text-[0.9rem] font-semibold text-[#FF4081]">Rp</h1>
-                                            <h1 className="text-[0.9rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga )}</h1>
+                                            <h1 className="xl:text-[0.9rem] text-[0.6rem] font-semibold text-[#FF4081]">Rp</h1>
+                                            <h1 className="xl:text-[0.9rem] text-[0.6rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga )}</h1>
                                         </div>
-                                        <div className="w-auto flex items-center justify-start gap-1">
-                                            <FaStar size={10} className="text-yellow-400"/>
-                                            <h1 className="flex items-center gap-1 text-sm text-[#FFFFFF]">{product.rating}</h1>
+                                        <div className="w-auto flex items-center justify-start xl:gap-1 gap-[2px]">
+                                            <FaStar className="text-yellow-400 xl:text-base text-[0.7rem]"/>
+                                            <h1 className="flex items-center gap-1 xl:text-sm text-[0.7rem] text-[#FFFFFF]">{product.rating}</h1>
                                         </div>
                                         <div className="w-full flex items-center justify-between">
-                                            <div className="w-auto flex justify-start items-center gap-1">
-                                                <GrMapLocation className="text-[#FF4081]" size={15}/>
-                                                <h1 className="text-white text-sm">{product.lokasi}</h1>
+                                            <div className="w-auto flex justify-start items-center xl:gap-1 gap-[2px]">
+                                                <GrMapLocation className="text-[#FF4081] xl:text-lg text-[0.7rem]"/>
+                                                <h1 className="text-white xl:text-sm text-[0.5rem]">{product.lokasi}</h1>
                                             </div>
-                                            <div className="w-auto flex justify-end items-center gap-1">
-                                                <h1 className="text-[#FFFFFF] text-[0.775rem] italic">{formatNumber(product.terjual)}</h1>
-                                                <h1 className="text-[#FF4081] text-[0.775rem]">terjual</h1>
+                                            <div className="w-auto flex justify-end items-center xl:gap-1 gap-[2px]">
+                                                <h1 className="text-[#FFFFFF] xl:text-[0.775rem] text-[0.6rem] italic">{formatNumber(product.terjual)}</h1>
+                                                <h1 className="text-[#FF4081] xl:text-[0.775rem] text-[0.6rem]">terjual</h1>
                                             </div>
                                         </div>
                                     </div>

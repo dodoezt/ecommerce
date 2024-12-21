@@ -10,9 +10,9 @@ import { FaMinus } from "react-icons/fa";
 import { IoIosCart } from "react-icons/io";
 import { FaCircleCheck } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
+import { emitter } from './eventEmitter'
 
 const ProductView = () => {
-
     const [productName, setProductName] = useState('');
     const [harga, setHarga] = useState(0);
     const [lokasi, setLokasi] = useState('');
@@ -25,6 +25,7 @@ const ProductView = () => {
     const [spesifikasi, setSpesifikasi] = useState('');
     const [jumlah, setJumlah] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
+    const [item, setItem] = ([]);
     const currentJumlah = jumlah;
     const { id } = useParams();
 
@@ -45,18 +46,17 @@ const ProductView = () => {
             setKondisi(response.data.kondisi);
             setMinPembelian(response.data.min_pembelian);
             setSpesifikasi(response.data.spesifikasi);
+            setItem(response);
         } catch (err) {
             console.log(err)
         }
     }
 
     const insertCartItems = async (e) => {
-        setIsLocked(true);
-
-        if(isLocked == true){
-            return
-        }
         e.preventDefault();
+        if (isLocked) return; 
+        setIsLocked(true);
+        
         try {
             await axios.post('http://localhost:3001/cart', {
                 id,
@@ -67,35 +67,43 @@ const ProductView = () => {
                 rating,
                 stok,
                 jumlah
-            })
+            });
+            
+            emitter.emit('cartUpdated');
+            
+            const cartNotify = document.getElementById('cartNotify');
+            cartNotify.classList.replace('hidden', 'flex');
+            setTimeout(() => {
+                cartNotify.classList.replace('-bottom-10', 'bottom-0');
+                cartNotify.classList.add('addedCartStart');
+            }, 100);
+            setTimeout(() => {
+                cartNotify.classList.replace('bottom-0', '-bottom-10');
+                cartNotify.classList.remove('addedCartStart');
+                cartNotify.classList.replace('flex', 'hidden');
+                setIsLocked(false);
+            }, 3100);
+            
         } catch (err) {
-            if(err.response && err.response.status === 400) {
-                const cartCountFailed = document.getElementById('cartCountFailed')
-                cartCountFailed.classList.replace('hidden', 'flex');
+            if (err.response && err.response.status === 400) {
+                const cartNotifyFailed = document.getElementById('cartNotifyFailed');
+                cartNotifyFailed.classList.replace('hidden', 'flex');
                 setTimeout(() => {
-                    cartCountFailed.classList.replace('-bottom-10', 'bottom-0')
-                    cartCountFailed.classList.add('addedCartStart');
-                }, 100)
+                    cartNotifyFailed.classList.replace('-bottom-10', 'bottom-0');
+                    cartNotifyFailed.classList.add('addedCartStart');
+                }, 100);
                 setTimeout(() => {
-                    cartCountFailed.classList.replace('bottom-0' ,'-bottom-10')
-                    cartCountFailed.classList.remove('addedCartStart');
-                    cartCountFailed.classList.replace('flex' ,'hidden');
-                }, 3100)
+                    cartNotifyFailed.classList.replace('bottom-0', '-bottom-10');
+                    cartNotifyFailed.classList.remove('addedCartStart');
+                    cartNotifyFailed.classList.replace('flex', 'hidden');
+                    setIsLocked(false);
+                }, 3100);
+            } else {
+                console.error("Error adding item to cart:", err);
+                setIsLocked(false); 
             }
         }
-        const cartCount = document.getElementById('cartCount')
-        cartCount.classList.replace('hidden', 'flex');
-        setTimeout(() => {
-            cartCount.classList.replace('-bottom-10', 'bottom-0')
-            cartCount.classList.add('addedCartStart');
-        }, 100)
-        setTimeout(() => {
-            cartCount.classList.replace('bottom-0', '-bottom-10' )
-            cartCount.classList.remove('addedCartStart');
-            cartCount.classList.replace('flex' ,'hidden');
-            setIsLocked(false);
-        }, 3100)
-    }
+    };
 
     const handleClickDetail = () => {
         const navDetail = document.getElementById('navDetail');
@@ -176,8 +184,8 @@ const ProductView = () => {
 
     return (
         <div className='w-full h-full relative'>
-            <div className='w-full flex items-start justify-center pt-20 gap-5 relative'>
-                <div className="img flex-1 m-5 h-full bg-white sticky top-24">
+            <div className='w-full flex xl:flex-row md:flex-row flex-col items-start justify-center pt-20 gap-5 relative'>
+                <div className="img flex-1 m-5 h-full bg-white xl:sticky md:sticky top-24">
                     <img src={`/imgProduct/img${id}.jpeg`} alt={productName} className='w-full aspect-square object-contain'/>
                 </div>
                 <div className="keteranganProduk flex-[2] flex flex-col justify-start items-center p-5">
@@ -326,11 +334,11 @@ const ProductView = () => {
                     </div>
                 </div>
             </div>
-            <div id='cartCount' className="addedCart w-full fixed -bottom-10 z-30 p-2 hidden justify-center items-center bg-white text-center gap-1 transition-all ease duration-300">
+            <div id='cartNotify' className="addedCart w-full fixed -bottom-10 z-30 p-2 hidden justify-center items-center bg-white text-center gap-1 transition-all ease duration-300">
                 <FaCircleCheck size={20} className='text-[#FF4081]'/>
                 <h1 className='font-Poppins text-[#121212] text-base'>item ditambahkan ke keranjang </h1>
             </div>
-            <div id='cartCountFailed' className="addedCartFailed w-full fixed -bottom-10 z-30 p-2 hidden justify-center items-center bg-white text-center gap-1 transition-all ease duration-300">
+            <div id='cartNotifyFailed' className="addedCartFailed w-full fixed -bottom-10 z-30 p-2 hidden justify-center items-center bg-white text-center gap-1 transition-all ease duration-300">
                 <MdCancel size={20} className='text-[#ff1818]'/>
                 <h1 className='font-Poppins text-[#121212] text-base'>item sudah ada di keranjang </h1>
             </div>

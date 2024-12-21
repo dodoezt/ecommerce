@@ -7,7 +7,6 @@ import { FaRegEyeSlash } from "react-icons/fa6";
 
 const Daftar = () => {
     const [username, setUsername] = useState('')
-    const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [konfirmasiPassword, setKonfirmasiPassword] = useState('')
     const [kataKunci, setKataKunci] = useState('')
@@ -22,7 +21,6 @@ const Daftar = () => {
     const eyeSlashRefKonfirmasi = useRef(null);
 
     const usernameRef = useRef(null);
-    const emailRef = useRef(null);
     const passwordRef = useRef(null);
     const konfirmasiPasswordRef = useRef(null);
     const kataKunciRef = useRef(null);
@@ -32,7 +30,6 @@ const Daftar = () => {
         try {
             await axios.post('http://localhost:3001/users', {
                 username,
-                email,
                 password,
                 konfirmasiPassword,
                 kataKunci
@@ -49,7 +46,7 @@ const Daftar = () => {
             } else if (err.response && err.response.status === 403) {
                 setSignError('*tidak boleh ada yang kosong.')
             } else {
-                setSignError('*username atau email sudah terdaftar.');
+                setSignError('*username sudah terdaftar.');
             }
         }
     }
@@ -76,8 +73,8 @@ const Daftar = () => {
     };
 
     return (
-    <div className="h-lvh w-full container flex justify-center items-center relative">
-        <aside className="left h-full flex-1 bg-white flex justify-ce nter items-center">
+    <div className="h-lvh w-full container flex xl:flex-row sm:flex-row flex-col justify-center items-center relative">
+        <aside className="left w-full h-full flex-1 bg-white flex justify-ce nter items-center">
             <form className="w-full p-10 flex flex-col items-center justify-center font-Poppins gap-3">
                 <h1 className="font-Poppins text-[#FF4081] font-semibold text-3xl">Daftar</h1>
                 <div className="w-full flex flex-col justify-center gap-1">
@@ -88,17 +85,6 @@ const Daftar = () => {
                     onChange={(e) => setUsername(e.target.value)}
                     autoComplete="username"
                     ref={usernameRef}
-                    onKeyDown={(e) => handleKeyDown(e, emailRef)}
-                    />
-                </div>
-                <div className="w-full flex flex-col justify-center gap-1">
-                    <h1 className="Email text-[#121212] text-lg font-semibold">Email</h1>
-                    <input type="text" className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
-                    placeholder="Emailmu"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="current-email"
-                    ref={emailRef}
                     onKeyDown={(e) => handleKeyDown(e, passwordRef)}
                     />
                 </div>
@@ -120,8 +106,9 @@ const Daftar = () => {
                             eyeSlashRef.current.classList.remove("hidden");
                             setInputType('text');
                         }}
+                        type="button"
                         >
-                            <FaRegEye size={20} className="text-[#FF4081]"/>
+                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
                         </button>
                         <button ref={eyeSlashRef} className="absolute right-3 hidden p-1"
                         onClick={(e)=> {
@@ -130,8 +117,9 @@ const Daftar = () => {
                             eyeRef.current.classList.remove("hidden");
                             setInputType('password')
                         }}
+                        type="button"
                         >
-                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
+                            <FaRegEye size={20} className="text-[#FF4081]"/>
                         </button>
                     </div>
                 </div>
@@ -153,8 +141,9 @@ const Daftar = () => {
                             eyeSlashRefKonfirmasi.current.classList.remove("hidden");
                             setKonfirmasiInputType('text');
                         }}
+                        type="button"
                         >
-                            <FaRegEye size={20} className="text-[#FF4081]"/>
+                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
                         </button>
                         <button ref={eyeSlashRefKonfirmasi} className="absolute right-3 hidden p-1"
                         onClick={(e)=> {
@@ -163,8 +152,9 @@ const Daftar = () => {
                             eyeRefKonfirmasi.current.classList.remove("hidden");
                             setKonfirmasiInputType('password')
                         }}
+                        type="button"
                         >
-                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
+                            <FaRegEye size={20} className="text-[#FF4081]"/>
                         </button>
                     </div>
                 </div>
@@ -185,16 +175,16 @@ const Daftar = () => {
                     <Link className="flex gap-1"
                     to={'/masuk'}
                     >
-                        <h1 className="text-[#121212] no-underline">Sudah punya akun?</h1>
+                        <h1 className="text-[#121212] no-underline xl:lg:text-base text-sm">Sudah punya akun?</h1>
                         <h1 className="cursor-pointer underline text-[#FF4081] hover:text-[#121212] transition-all ease duration-100">Masuk</h1>
                     </Link>
-                    <button className="w-1/3 p-2 bg-[#FF4081] text-[#FFFFFF] font-Poppins font-semibold hover:bg-[#c2265a] transition-a;;"
+                    <button className="xl:lg:w-1/3 w-1/4 p-2 bg-[#FF4081] text-[#FFFFFF] font-Poppins font-semibold hover:bg-[#c2265a] transition-a;;"
                     onClick={handleDaftar}
                     >Daftar</button>
                 </div>
             </form>
         </aside>
-        <aside className="right flex-1 flex flex-col justify-center items-center gap-2">
+        <aside className="right xl:flex-1 md:flex-1 flex flex-col justify-center items-center gap-2 xl:p-0 md:p-0 p-5">
             <div className="logo flex">
               <h1 className="text-3xl text-[#FFFFFF] tracking-wide font-Parkinsans font-medium">Gadget</h1>
               <h1 className="text-3xl text-[#FF4081] tracking-wide font-Parkinsans font-medium italic">.kuy</h1>
@@ -205,7 +195,7 @@ const Daftar = () => {
                 </h1>
             </div>
         </aside>
-        <span className="w-1/4 p-3 py-5 bg-[#212121] rounded-xl font-semibold font-Poppins items-center justify-center gap-1 fixed top-0 transition-all ease duration-200"
+        <span className="xl:w-1/4 lg:w-1/3 w-auto p-3 py-5 bg-[#212121] rounded-xl font-semibold font-Poppins items-center justify-center gap-1 fixed top-0 transition-all ease duration-200"
         ref={signNotificationRef}
         style={{ 
             display: "flex",
@@ -213,7 +203,7 @@ const Daftar = () => {
         }}
         >
             <h1 className="text-[#FF4081]"><IoIosCheckmarkCircle size={30}/></h1>
-            <h1 className="text-xl text-[#FFFFFF]">Registrasi Berhasil</h1>
+            <h1 className="xl:lg:text-xl text-base text-[#FFFFFF] text-nowrap">Registrasi Berhasil</h1>
         </span>
     </div>
   )

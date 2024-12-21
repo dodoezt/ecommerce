@@ -54,8 +54,8 @@ const Masuk = () => {
     };
 
     return (
-    <div className="h-lvh w-full container flex justify-center items-center">
-        <aside className="left h-full flex-1 bg-white flex justify-center items-center">
+    <div className="h-lvh w-full container flex xl:flex-row md:flex-row flex-col justify-center items-center">
+        <aside className="left w-full h-full flex-1 bg-white flex justify-center items-center">
             <form className="w-full p-10 flex flex-col items-center justify-center font-Poppins gap-3">
                 <h1 className="font-Poppins text-[#FF4081] font-semibold text-3xl">Masuk</h1>
                 <div className="w-full flex flex-col justify-center gap-1">
@@ -86,8 +86,9 @@ const Masuk = () => {
                             eyeSlashRef.current.classList.remove("hidden");
                             setInputType('text');
                         }}
+                        type="button"
                         >
-                            <FaRegEye size={20} className="text-[#FF4081]"/>
+                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
                         </button>
                         <button ref={eyeSlashRef} className="absolute right-3 hidden p-1"
                         onClick={(e)=> {
@@ -96,8 +97,9 @@ const Masuk = () => {
                             eyeRef.current.classList.remove("hidden");
                             setInputType('password')
                         }}
+                        type="button"
                         >
-                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
+                            <FaRegEye size={20} className="text-[#FF4081]"/>
                         </button>
                     </div>
                 </div>
@@ -125,7 +127,7 @@ const Masuk = () => {
                 </div>
             </form>
         </aside>
-        <aside className="h-full right flex-1 flex flex-col justify-center items-center gap-2">
+        <aside className="xl:h-full h-auto right flex-1 flex flex-col justify-center items-center gap-2">
             <div className="logo flex">
               <h1 className="text-3xl text-[#FFFFFF] tracking-wide font-Parkinsans font-medium">Gadget</h1>
               <h1 className="text-3xl text-[#FF4081] tracking-wide font-Parkinsans font-medium italic">.kuy</h1>

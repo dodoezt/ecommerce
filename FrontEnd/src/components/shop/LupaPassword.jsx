@@ -19,8 +19,7 @@ const LupaPassword = () => {
                 username,
                 kataKunci
             });
-            console.log(response.data)
-            navigate('/');
+            navigate(`/passwordbaru/${response.data.userId}`)
             setLogError('')
         } catch (err) {
             if (err.response && err.response.status === 404) {
@@ -43,10 +42,10 @@ const LupaPassword = () => {
     };
 
     return (
-    <div className="h-lvh w-full container flex justify-center items-center">
+    <div className="h-lvh w-full container flex xl:flex-row md:flex-row flex-col justify-center items-center">
         <aside className="left h-full flex-1 bg-white flex justify-center items-center">
             <form className="w-full p-10 flex flex-col items-center justify-center font-Poppins gap-3">
-                <h1 className="font-Poppins text-[#FF4081] font-semibold text-3xl">Lupa Password</h1>
+                <h1 className="font-Poppins text-[#FF4081] font-semibold xl:text-3xl md:text-2xl text-xl">Lupa Password</h1>
                 <div className="w-full flex flex-col justify-center gap-1">
                     <h1 className="Username text-[#121212] text-lg font-semibold">Username</h1>
                     <input type="text" className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
@@ -95,13 +94,13 @@ const LupaPassword = () => {
                 </div>
             </form>
         </aside>
-        <aside className="h-full right flex-1 flex flex-col justify-center items-center gap-2">
+        <aside className="xl:h-full md:h-full h-auto right flex-1 flex flex-col justify-center items-center gap-2">
             <div className="logo flex">
               <h1 className="text-3xl text-[#FFFFFF] tracking-wide font-Parkinsans font-medium">Gadget</h1>
               <h1 className="text-3xl text-[#FF4081] tracking-wide font-Parkinsans font-medium italic">.kuy</h1>
             </div>
             <div className="flex">
-                <h1 className="text-[#FFFFFF] font-Poppins text-xl font-semibold">
+                <h1 className="text-[#FFFFFF] font-Poppins text-xl font-semibold text-center">
                     Waduh kamu lupa passwordmu ya?
                 </h1>
             </div>

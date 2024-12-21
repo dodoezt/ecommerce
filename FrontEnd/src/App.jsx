@@ -7,17 +7,18 @@ import Cart from './components/shop/Cart.jsx';
 import Masuk from './components/shop/Masuk.jsx';
 import Daftar from './components/shop/Daftar.jsx';
 import LupaPassword from './components/shop/LupaPassword.jsx';
+import PasswordBaru from './components/shop/PasswordBaru.jsx';
+import Footer from './components/shop/Footer.jsx';
 
 const AppWarper = () => {
   const location = useLocation();
 
-  const hideNavbarPath = ['/masuk','/daftar','/lupapassword']
+  const hideNavbarPath = ['/masuk','/daftar','/lupapassword','/passwordbaru/:id']
 
-  const shouldShowNavbar = !hideNavbarPath.includes(location.pathname);
-
+  const shouldShowNavbarAndFooter = !hideNavbarPath.includes(location.pathname) && !location.pathname.startsWith('/passwordbaru/');
   return (
     <>
-      {shouldShowNavbar && <Navbar/>}
+      {shouldShowNavbarAndFooter && <Navbar/>}
       <Routes>
         <Route path="/" element={<MainPage />} />
         <Route path="product/:id" element={<ProductView />} />
@@ -26,8 +27,10 @@ const AppWarper = () => {
         <Route path='masuk' element={<Masuk />}/>
         <Route path='daftar' element={<Daftar />}/>
         <Route path='lupapassword' element={<LupaPassword />}/>
+        <Route path='passwordbaru/:id' element={<PasswordBaru />}/>
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
       </Routes>
+      {shouldShowNavbarAndFooter && <Footer/>}
     </>
   )
 }

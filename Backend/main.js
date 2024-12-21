@@ -158,6 +158,9 @@ app.post('/cart', async (req, res) => {
         res.status(201).json({ msg: "Product created", productId: result.insertId });
     } catch (err) {
         console.error(err.message);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(400).json({ error: "Product with this name already exists in the cart" });
+        }
         res.status(500).json({ error: "Failed to create product" });
     }
 });
@@ -228,9 +231,9 @@ app.get('/users/:id', async (req, res) => {
 
 app.post('/users', async (req, res) => {
     try {
-        const { username, email, password, konfirmasiPassword, kataKunci } = req.body;
+        const { username, password, konfirmasiPassword, kataKunci } = req.body;
 
-        if (!username || !email || !password || !konfirmasiPassword || !kataKunci) {
+        if (!username || !password || !konfirmasiPassword || !kataKunci) {
             return res.status(403).json({ error: "Input can't be empty" });
         }
         if (password !== konfirmasiPassword) {
@@ -248,10 +251,10 @@ app.post('/users', async (req, res) => {
         const hashedKataKunci = await bcrypt.hash(kataKunci, saltRounds);
 
         const query = `
-            INSERT INTO users (username, email, password, kata_kunci) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO users (username, password, kata_kunci) 
+            VALUES (?, ?, ?)
         `;
-        const [result] = await pool.query(query, [username, email, hashedPassword, hashedKataKunci]);
+        const [result] = await pool.query(query, [username, hashedPassword, hashedKataKunci]);
         res.status(201).json({ msg: "Product created", productId: result.insertId });
     } catch (err) {
         console.error(err.message);
@@ -312,14 +315,37 @@ app.post('/retriveaccount', async (req, res) => {
             return res.status(401).json({ message: 'Invalid password' });
         }
 
-        const { password: _, ...userWithoutPassword } = user;
-        return res.json({ message: 'Login successful', user: userWithoutPassword });
+        const userId = user.id;
+        return res.json({ message: 'kata kunci benar', userId });
         
     } catch (err) {
         console.error('Database error:', err);
         res.status(500).json({ error: 'Failed to login' });
     }
 });
+
+app.patch('/users/:id', async (req, res) => {
+    try{
+        const { passwordBaru, konfirmasiPasswordBaru } = req.body;
+        const id = req.params.id;
+
+        if(!passwordBaru || !konfirmasiPasswordBaru){
+            return res.status(403).json({message: 'cant be empty'})
+        }
+    
+        if (passwordBaru !== konfirmasiPasswordBaru) {
+            return res.status(400).json({ error: "Passwords do not match" });
+        }
+        const hashedPasswordBaru = await bcrypt.hash(passwordBaru, 10);
+    
+        const query = `UPDATE users SET password = ? WHERE id = ?`;
+        const [rows] = await pool.query(query, [hashedPasswordBaru, id]);
+        return res.status(201).json(rows)
+    } catch (err) {
+        console.error('Database error:', err);
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+})
 
 
 
