@@ -203,7 +203,7 @@ const Daftar = () => {
         }}
         >
             <h1 className="text-[#FF4081]"><IoIosCheckmarkCircle size={30}/></h1>
-            <h1 className="xl:lg:text-xl text-base text-[#FFFFFF] text-nowrap">Registrasi Berhasil</h1>
+            <h1 className="sm::text-xl text-base text-[#FFFFFF] text-nowrap">Registrasi Berhasil</h1>
         </span>
     </div>
   )

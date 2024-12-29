@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useState, useRef } from "react"
-import axios from "axios"
+import axios from "axios";
 import { FaRegEye } from "react-icons/fa6";
 import { FaRegEyeSlash } from "react-icons/fa6";
 
@@ -26,7 +26,7 @@ const Masuk = () => {
             });
             const user = response.data;
             localStorage.setItem('loggedInUser', JSON.stringify(user));
-            console.log(response.data)
+            localStorage.setItem('refreshMainPage', 'true');
             navigate('/');
             setLogError('')
         } catch (err) {

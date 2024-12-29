@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useState, useEffect, useRef } from "react";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 // import img1 from "../../public/imgproduct/img1.jpeg"
 import { FaStar } from "react-icons/fa";
 import { GrMapLocation } from "react-icons/gr";
@@ -8,9 +8,9 @@ import { IoIosArrowDown } from "react-icons/io";
 import { IoIosArrowDropleftCircle } from "react-icons/io";
 import { IoIosArrowDroprightCircle } from "react-icons/io";
 import { SiFireship } from "react-icons/si";
+import PropTypes from "prop-types";
 
-const MainPage = () => {
-    
+const MainPage = ( {trendingProductRef, allProductRef} ) => {
     const [product, setProduct] = useState([]);
     const [trendingProduct, setTrendingProduct] = useState([]);
     const [error, setError] = useState(null);
@@ -20,12 +20,12 @@ const MainPage = () => {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [increment, setIncrement] = useState(0);
     const [trendingIncrement, setTrendingIncrement] = useState(0);
-    const categories = ["Handphone", "Laptop", "Tablet", "Kamera", "Earbuds"];
     
+    const categories = ["Handphone", "Laptop", "Tablet", "Kamera", "Earbuds"];
+
     useEffect(() => {
         fetchProduct();
         getTrendingProduct();
-
         const updateVisibleCount = () => {
             const screenWidth = window.innerWidth;
             if (screenWidth >= 1280) {
@@ -57,6 +57,14 @@ const MainPage = () => {
             window.removeEventListener("resize", updateVisibleCount);
         };
     }, []);
+
+    useEffect(() => {
+        const refreshFlag = localStorage.getItem('refreshMainPage');
+        if (refreshFlag === 'true') {
+            localStorage.removeItem('refreshMainPage'); // Clear the flag
+            window.location.reload();
+        }
+    }, []);
     
     const getTrendingProduct = async () => {
         setLoading(true);
@@ -67,7 +75,7 @@ const MainPage = () => {
         } catch (error) {
             setError(error.message);
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
@@ -117,7 +125,7 @@ const MainPage = () => {
         left: nextIndex * slider.offsetWidth,
         behavior: "smooth",
         });
-    }, 5000); // Slide every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
     }, [currentIndex, images.length]);
@@ -185,7 +193,7 @@ const MainPage = () => {
         return (
             <div className="w-full p-5 h-auto flex justify-endi tems-center">
                 <main className="w-full flex justify-center items-center">
-                    <p className="text-white">loading....</p>
+                    <p className="text-white text-3xl">loading....</p>
                 </main>
             </div>
         )
@@ -227,6 +235,7 @@ const MainPage = () => {
 
 
     return (
+        <>
         <div className="w-full px-5 h-auto flex flex-col justify-center items-center mt-5">
             <div className="w-full h-auto flex justify-center items-center xl:mt-24 mt-16">
                 <div className="w-[90%] relative flex justify-center items-center" 
@@ -260,7 +269,9 @@ const MainPage = () => {
                         /></button>
                 </div>
             </div>
-            <div className="w-[95%] flex flex-col justify-center items-end p-5 mt-10 m-auto rounded-xl bg-[#424242]">
+            <div className="w-[95%] flex flex-col justify-center items-end p-5 mt-10 m-auto rounded-xl bg-[#424242]"
+            ref={trendingProductRef}
+            >
                 <header className="w-full mb-4 flex justify-start items-center relative ">
                     <div className="relative h-auto w-auto flex justify-center items-center bg-[#424242] z-10 gap-1">
                         <SiFireship className="text-[#FF4081] z-10 xl:text-2xl text-lg"/>
@@ -292,17 +303,13 @@ const MainPage = () => {
                                             <FaStar className="text-yellow-400 xl:text-base text-[0.6rem]" />
                                             <h1 className="flex items-center gap-1 xl:text-sm text-[0.6rem] text-[#FFFFFF]">{product.rating}</h1>
                                         </div>
-                                        <div className="w-full xl:flex lg:flex items-center justify-between hidden">
+                                        <div className="w-full xl:flex lg:flex items-center justify-start hidden">
                                             <div className="w-auto flex justify-start items-center gap-1">
                                                 <GrMapLocation className="text-[#FF4081] xl:text-base text-[0.7rem]"/>
                                                 <h1 className="text-white xl:text-xs text-[0.5rem]">{product.lokasi}</h1>
                                             </div>
-                                            <div className="w-auto hidden xl:flex justify-end items-center gap-1">
-                                                <h1 className="text-[#FFFFFF] text-[0.775rem] italic">{formatNumber(product.terjual)}</h1>
-                                                <h1 className="text-[#FF4081] text-[0.775rem]">terjual</h1>
-                                            </div>
                                         </div>
-                                        <div className="w-auto xl:hidden flex justify-end items-center gap-1">
+                                        <div className="w-auto flex justify-end items-center gap-1">
                                             <h1 className="text-[#FFFFFF] xl:text-[0.775rem] text-[0.5rem] italic">{formatNumber(product.terjual)}</h1>
                                             <h1 className="text-[#FF4081] xl:text-[0.775rem] text-[0.5rem]">terjual</h1>
                                         </div>
@@ -312,7 +319,6 @@ const MainPage = () => {
                             );
                         })}
                     </div>
-        
                     {visibleCountTrending < trendingProduct.length && (
                         <button
                             onClick={showMoreTrendingProducts}
@@ -324,7 +330,9 @@ const MainPage = () => {
                     )}
                 </main>
             </div>
-            <div className="w-full px-5 h-auto flex flex-col justify-center items-center mt-5">
+            <div className="w-full px-5 h-auto flex flex-col justify-center items-center mt-5"
+            ref={allProductRef}
+            >
                 <header className="w-full flex justify-start items-center mb-4 relative border-b-2 border-[#FF4081]">
                     <h1 className="headerProduct p-2 flex justify-center items-center text-[#FFFFFF] xl:text-3xl text-xl font-Montserrat font-semibold z-10 relative">Produk Kami</h1>
                 </header>
@@ -356,15 +364,15 @@ const MainPage = () => {
                         <div className="w-auto grid xl:grid-cols-5 lg:grid-cols-4 gap-7 sm:grid-cols-3 grid-cols-2">
                             {product.slice(0, visibleCount).map((product) => {
                                 return (
-                                <Link to={`product/${product.id}`} key={product.id} className="xl:w-44 w-36 xl:aspect-[3/5] aspect-[2/3] flex flex-col justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden gap-1">
+                                <Link to={`product/${product.id}`} key={product.id} className="xl:w-44 w-36 xl:aspect-[3/5] aspect-[3/5] flex flex-col justify-start items-center rounded-xl shadow-[rgba(255, 255, 255, 0.24) 0px 3px 8px;] bg-[#212121] overflow-hidden gap-1">
                                     <div className="w-full aspect-square overflow-hidden bg-white">
                                         <img src={`/imgProduct/img${product.id}.jpeg`} alt={product.nama} className="w-full h-full object-contain object-center"/>
                                     </div>
                                     <div className="w-full h-auto xl:px-2 px-2 text-start no-wrap overflow-hidden flex flex-col itmes-start justify-start xl:gap-[2px] gap-[1px]">
-                                        <h1 className="text-[#FFFFFF] xl:text-[0.8rem] text-[0.6rem] line-clamp-1">{product.nama}</h1>
+                                        <h1 className="text-[#FFFFFF] xl:text-[0.8rem] text-[0.7rem] line-clamp-1">{product.nama}</h1>
                                         <div className="w-full flex items-center justify-start gap-[3px]">
-                                            <h1 className="xl:text-[0.9rem] text-[0.6rem] font-semibold text-[#FF4081]">Rp</h1>
-                                            <h1 className="xl:text-[0.9rem] text-[0.6rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga )}</h1>
+                                            <h1 className="xl:text-[0.9rem] text-[0.7rem] font-semibold text-[#FF4081]">Rp</h1>
+                                            <h1 className="xl:text-[0.9rem] text-[0.7rem] font-semibold text-[#FFFFFF]">{formatCurrency(product.harga )}</h1>
                                         </div>
                                         <div className="w-auto flex items-center justify-start xl:gap-1 gap-[2px]">
                                             <FaStar className="text-yellow-400 xl:text-base text-[0.7rem]"/>
@@ -373,11 +381,13 @@ const MainPage = () => {
                                         <div className="w-full flex items-center justify-between">
                                             <div className="w-auto flex justify-start items-center xl:gap-1 gap-[2px]">
                                                 <GrMapLocation className="text-[#FF4081] xl:text-lg text-[0.7rem]"/>
-                                                <h1 className="text-white xl:text-sm text-[0.5rem]">{product.lokasi}</h1>
+                                                <h1 className="text-white xl:text-sm text-[0.7rem]">{product.lokasi}</h1>
                                             </div>
-                                            <div className="w-auto flex justify-end items-center xl:gap-1 gap-[2px]">
-                                                <h1 className="text-[#FFFFFF] xl:text-[0.775rem] text-[0.6rem] italic">{formatNumber(product.terjual)}</h1>
-                                                <h1 className="text-[#FF4081] xl:text-[0.775rem] text-[0.6rem]">terjual</h1>
+                                        </div>
+                                        <div className="w-full flex items-center justify-start">
+                                            <div className="w-auto flex justify-start items-center xl:gap-1 gap-[2px]">
+                                                <h1 className="text-[#FFFFFF] xl:text-[0.775rem] text-[0.7rem] italic">{formatNumber(product.terjual)}</h1>
+                                                <h1 className="text-[#FF4081] xl:text-[0.775rem] text-[0.7rem]">terjual</h1>
                                             </div>
                                         </div>
                                     </div>
@@ -398,7 +408,13 @@ const MainPage = () => {
                 </main>
             </div>
         </div>
+        </>
     )
+}
+
+MainPage.propTypes = {
+    trendingProductRef: PropTypes.object.isRequired,
+    allProductRef: PropTypes.object.isRequired
 }
 
 export default MainPage

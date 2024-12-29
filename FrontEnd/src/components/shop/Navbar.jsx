@@ -2,24 +2,33 @@ import axios from "axios";
 import { emitter } from "./eventEmitter";
 import { useEffect, useRef, useState } from "react";
 import { IoIosSearch } from "react-icons/io";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { IoCartOutline } from "react-icons/io5";
-import { MdLogout } from "react-icons/md";
-import { CiLogin } from "react-icons/ci";
+import { MdHistory } from "react-icons/md";
+// import { MdLogout } from "react-icons/md";
+// import { CiLogin } from "react-icons/ci";
+import { useSidebar, useUser } from "./ManageContext";
 
 const Navbar = () => {
   const [keyword, setKeyword] = useState('');
   const [placeholders, setPlaceholders] = useState([]);
   const [currentPlaceholders, setCurrentPlaceholders] = useState('Apa yang kamu cari?');
   const [height, setHeight] = useState('0rem');
-  const [loggedInUser, setLoggedInUser] = useState(null);
-  const [initialUsername, setInitialUsername] = useState('');
   const [isClick, setIsClick] = useState(false);
   const [cartItems, setCartItems] = useState([]);
-  const navigate = useNavigate();
+  const [searchSuggest, setSearchSuggest] = useState([]);
+  const [isSearch, setIsSearch] = useState(true);
 
-  const profileRef = useRef(null);
+  const {handleSidebar} = useSidebar();
+  const {username} = useUser();
+
+  const navigate = useNavigate();
   const burgerNavRef = useRef(null);
+  const overlayRef = useRef(null)
+  const searchSuggestRef = useRef(null)
+  const mobileSearchRef = useRef(null)
+  const mobileSearchSuggestRef = useRef(null)
+  const historiSpanRef = useRef(null)
 
   const fetchData = async () => {
     const response = await axios.get('http://localhost:3001/shop');
@@ -28,9 +37,23 @@ const Navbar = () => {
   }  
 
   const fetchDataCart = async () => {
-    const response = await axios.get('http://localhost:3001/cart');
+    const response = await axios.get(`http://localhost:3001/cartByUser/${username}`);
     setCartItems(response.data);
   };
+
+  const getSearchSuggest = async () => {
+    try {
+      const response = await axios.get(`http://localhost:3001/search/${keyword}`)
+      setSearchSuggest(response.data);
+    } catch (err) {
+      console.log(err.message)
+    }
+  }
+
+  // useState(() => {
+  //   getSearchSuggest()
+  //   console.log('rendered')
+  // }, [keyword])
 
   const dynamicPlaceholders = () => {
     if (placeholders.length > 0) {
@@ -40,17 +63,6 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('loggedInUser');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user && user.user) {
-        setLoggedInUser(user.user);
-        setInitialUsername(user.user.username[0]);
-      } 
-    } else {
-      setLoggedInUser(null);
-    }
-
     const searchLabel = document.getElementById('searchLabel');
     searchLabel.classList.replace('hidden', 'hidden');
     fetchData();
@@ -66,29 +78,17 @@ const Navbar = () => {
     };
   }, [])
 
-  const handleClickProfile = () => {
-    const profile = profileRef.current;
-    setIsClick(!isClick);
-    if (isClick === true) {
-      profile.style.display = "none";
-    } else {
-      profile.style.display = "block";
-    }
+  const handleSearchFocus = () => {
+    const overlay = overlayRef.current;
+    overlay.style.display = "block";
+    searchSuggestRef.current.style.display = "flex";
   }
-
-  const handleBlurProfile = () => {
-    const profile = profileRef.current;
-    profile.style.display = "none";
-  }
-
-  const handleLogOut = () => {
-    localStorage.removeItem('loggedInUser');
-    setLoggedInUser(null);
-    navigate('/'); 
-  };
 
   function handleBlur() {
     const searchLabel = document.getElementById('searchLabel');
+    const overlay = overlayRef.current;
+    overlay.style.display = "none";
+    searchSuggestRef.current.style.display = "none"
     if(keyword.length !== 0){
       searchLabel.classList.replace('hidden', 'hidden');
     } else {
@@ -98,6 +98,8 @@ const Navbar = () => {
   }
 
   function handleSearch() {
+    handleBlur();
+    setKeyword('')
     if (keyword.trim() !== '') {
       navigate(`/search/${keyword}`);
     } else {
@@ -113,6 +115,45 @@ const Navbar = () => {
     }
   }
 
+  const handleMobileSearch = () => {
+    setIsSearch(!isSearch);
+    if(isSearch === true) {
+      mobileSearchRef.current.style.display = "block";
+    } else {
+      mobileSearchRef.current.style.display = "none";
+    }
+  }
+
+  const handleMobileSearchFocus = () => {
+    const overlay = overlayRef.current;
+    overlay.style.display = "block";
+    mobileSearchSuggestRef.current.style.display = "flex";
+  }
+
+  const handleMobileSearchBlur = () => {
+    setIsSearch(!isSearch)
+    const overlay = overlayRef.current;
+    overlay.style.display = "none";
+    mobileSearchRef.current.style.display = "none"
+    mobileSearchSuggestRef.current.style.display = "none"
+  } 
+
+  const highlightMatch = (text, keyword) => {
+    if (!keyword) return text;
+    const regex = new RegExp(`(${keyword})`, "gi"); // Create a case-insensitive regex
+    const parts = text.split(regex); // Split text into matched and unmatched parts
+    return parts.map((part, index) =>
+      part.toLowerCase() === keyword.toLowerCase() ? (
+        <span key={index} className="text-[#FF4081] font-bold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
+  
+
   function handleCartOver(){
     const cartContainer = document.getElementById('cartContainer');
     cartContainer.classList.replace('xl:hidden', 'xl:flex')
@@ -125,14 +166,30 @@ const Navbar = () => {
     setHeight('0rem');
   }
 
-  const handleClickBurger = () => {
-    setIsClick(!isClick)
-    const burger = burgerNavRef.current;
-    if(isClick === true){
-      burger.classList.replace('flex' ,'hidden');
-    } else {
-      burger.classList.replace('hidden', 'flex');
-    }
+  // const handleClickBurger = () => {
+  //   setIsClick(!isClick)
+  //   const burger = burgerNavRef.current;
+  //   if(isClick === true){
+  //     burger.classList.replace('flex' ,'hidden');
+  //   } else {
+  //     burger.classList.replace('hidden', 'flex');
+  //   }
+  // }
+
+  // const handleScrollTo = () => {
+  //   if (fileRef.current) {
+  //     fileRef.current.scrollIntoView({ behavior: "smooth" });
+  //   }
+  // }
+
+  const historiHover = () => {
+    const historiSpan = historiSpanRef.current;
+    historiSpan.classList.replace('opacity-0', 'opacity-100');
+  }
+
+  const historiLeaveHover = () => {
+    const historiSpan = historiSpanRef.current;
+    historiSpan.classList.replace( 'opacity-100', 'opacity-0');
   }
 
   const formatCurrency = (amount) => {
@@ -145,40 +202,87 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="w-full fixed z-20 top-0">
-          <nav className="w-full xl:h-20 md:h-20 h-16 p-4 bg-[#212121] flex justify-between items-center gap-5 relative">
-            <div className="leftNav w-1/4">
+      <div ref={overlayRef} style={{display: 'none'}} className="overlay z-40"></div>
+      <div className="w-full fixed z-50 top-0">
+          <nav className="w-full xl:h-20 sm:w-h-20 h-16 p-4 bg-[#212121] flex justify-between items-center gap-5 relative">
+            <div className="leftNav w-1/5">
               <div className="logo flex">
                 <h1 className="xl:text-3xl sm:text-lg text-base text-[#FFFFFF] tracking-wide font-Parkinsans font-medium">Gadget</h1>
                 <h1 className="xl:text-3xl sm:text-lg text-base text-[#FF4081] tracking-wide font-Parkinsans font-medium italic">.kuy</h1>
               </div>
             </div>
-            <div className="searchBar w-1/2 xl:block hidden">
-              <div className="w-full relative flex justify-center items-center">
-                <input id="searchInput" onBlur={handleBlur} type="text" className="w-full outline-none xl:p-2 p-1 xl:px-4 px-3 rounded-full border-[#FFFFFF] xl:border-2 border bg-[#424242] text-[#FFFFFF]"
+            <div className="searchBar flex-1 xl:flex sm:flex hidden z-50">
+              <div className="w-full relative flex justify-center items-center z-50">
+                <input id="searchInput" className="w-full outline-none xl:p-2 p-1 xl:px-4 px-3 rounded-full border-[#FFFFFF] xl:border-2 border bg-[#424242] text-[#FFFFFF] appearance-none z-50"
+                type="text"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onBlur={handleBlur}
+                onFocus={handleSearchFocus}
+                onChange={(e) => {
+                  setKeyword(e.target.value)
+                  getSearchSuggest()
+                }}
                 onKeyDown={handleKeyDown}/>
-                <label id="searchLabel" className={`absolute xl:left-5 left-3 text-[#ffffffa7] pointer-events-none ${keyword.trim() ? 'hidden' : 'block'}`}>{currentPlaceholders}</label>
+                <label id="searchLabel" className={`absolute xl:left-5 left-3 text-[#ffffffa7] pointer-events-none ${keyword.trim() ? 'hidden' : 'block'} z-50`}>{currentPlaceholders}</label>
                 <button
                 onClick={handleSearch} 
-                className="absolute xl:right-5 right-3 text-[#FFFFFF] text-xl"><IoIosSearch /></button>
+                className="absolute xl:right-5 right-3 text-[#FFFFFF] xl:text-2xl text-xl z-50"><IoIosSearch /></button>
+                <div ref={searchSuggestRef} style={{display: 'none'}} className="w-full flex flex-col items-center justify-start bg-[#121212] absolute top-full z-50">
+                  {keyword.length === 0 ? (
+                    <div className=""></div>
+                  ) : (
+                    searchSuggest.map((item) => (
+                      <button 
+                      onClick={() => {
+                        navigate(`/product/${item.id}`)
+                        handleBlur();
+                        setKeyword('');
+                      }}
+                      key={item.id} 
+                      className="w-full p-2 flex items-center justify-start border-b-[1px] border-b-white gap-2">
+                        <div className="w-10 aspect-square overflow-hidden bg-white">
+                          <img 
+                            src={`/imgProduct/img${item.id}.jpeg`}
+                            alt={item.nama} 
+                            className="w-full h-full object-contain"
+                            />
+                        </div>
+                        <h1 className="font-Poppins text-base font-medium text-[#FFFFFF]">{highlightMatch(item.nama, keyword)}</h1>
+                      </button>
+                    ))
+                  )} 
+                </div>
               </div>
             </div>
-            <div className="rightNav xl:w-1/4 w-1/2 flex justify-end items-center text-[#FFFFFF] gap-3 md:gap-5 text-nowrap text-base font-Poppins">
+            <div className="rightNav xl:w-1/5 sm:w-1/5 w-1/2 flex justify-end items-center text-[#FFFFFF] gap-3 sm:gap-5 text-nowrap text-base font-Poppins">
               <div className="flex items-center gap-3">
+                <button 
+                onClick={handleMobileSearch}
+                className="sm:hidden block">
+                  <IoIosSearch className="text-2xl text-[#FF4081]"/>
+                </button>
+                <div className="w-auto flex items-center justify-center relative">
+                  <button className="sm:text-3xl text-2xl text-[#FF4081]"
+                  onMouseOver={historiHover}
+                  onMouseOut={historiLeaveHover}
+                  onClick={() => navigate('/checkout')}
+                  >
+                    <MdHistory />
+                  </button>
+                  <div ref={historiSpanRef} className="sm:p-2 p-1 absolute top-full rounded-lg bg-[#12121289] border border-[#ffffffb3] text-[#ffffffb3] sm:text-sm text-[0.7rem] pointer-events-none opacity-0 transition-all ease duration-200">Histori Pembelian</div>
+                </div>
                 <button
                   id="cart" 
-                  className="flex-1 flex items-center justify-center aspect-square rounded-lg relative"
+                  className="flex items-center justify-center aspect-square rounded-lg relative"
                   onMouseOver={handleCartOver}
                   onMouseOut={handleCartOut}
                   onClick={() => {
-                    navigate('cart');
+                    navigate('/cart')
                     handleCartOut();
                   }}
                 >
                   <div className="w-auto h-auto relative cursor-pointer">
-                    <IoCartOutline className="text-[#FF4081] xl:text-3xl md:text-3xl text-2xl" />
+                    <IoCartOutline className="text-[#FF4081] xl:text-3xl sm:w-text-3xl text-2xl" />
                     {cartItems.length > 0 && (
                       <div className="w-auto h-auto bg-[white] rounded-full absolute px-0.5 bottom-0 right-0 z-20 xl:block hidden">
                         <h1 className="text-xs font-Poppins font-semibold text-[#121212]">{cartItems.length}</h1>
@@ -187,7 +291,7 @@ const Navbar = () => {
                   </div>
                   <div 
                     id="cartContainer" 
-                    className="keranjang w-[28rem] xl:hidden hidden overflow-y-scroll bg-white rounded-xl absolute top-full left-1/2 -translate-x-1/2 flex-col items-center shadow-lg"
+                    className="styledScroll keranjang w-[28rem] xl:hidden hidden overflow-auto bg-white rounded-xl absolute top-full right-0 flex-col items-center shadow-lg z-[100]"
                     style={{
                       maxHeight: height,
                       padding: '1rem',
@@ -212,7 +316,7 @@ const Navbar = () => {
                           >
                             <div className="aspect-square overflow-hidden rounded-md bg-white w-1/5">
                               <img 
-                                src={`/imgProduct/img${items.id}.jpeg`} 
+                                src={`/imgProduct/img${items.product_id}.jpeg`} 
                                 alt={items.nama} 
                                 className="w-full h-full object-contain"
                               />
@@ -233,89 +337,56 @@ const Navbar = () => {
                     </main>
                   </div>
                 </button>
-                <Link to={'/'} className="flex-1 p-2 xl:block hidden">
-                  Home
-                </Link>
-                <Link to={'/'} className="flex-1 p-2 xl:block hidden">
-                  Tentang Kami
-                </Link>
+                <button
+                onClick={handleSidebar}
+                className="xl:w-6 sm:w-w-6 w-5 p-[2px] aspect-square flex flex-col items-end justify-between">
+                  <div className="w-full h-[2px] bg-[#FF4081]"></div>
+                  <div className="w-2/3 h-[2px] bg-[#FF4081]"></div>
+                  <div className="w-1/3 h-[2px] bg-[#FF4081]"></div>
+                </button>
               </div>
-              <div className="xl:flex-1 flex justify-center items-center">
-                {loggedInUser === null ? ( 
-                  <>
-                  <Link
-                  to={'/masuk'}
-                  >
-                    <CiLogin className="text-2xl text-[#FF4081] xl:text-3xl md:text-3xl"/>
-                  </Link>
-                  </>
-                ) : (
-                  <button className="xl:w-[100%] w-8 px-1 aspect-square bg-[#FF4081] rounded-full relative"
-                  onClick={handleClickProfile}
-                  >
-                    <h1 className="text-[#FFFFFF] xl:text-2xl text-xl font-semibold pointer-events-none">
-                      {initialUsername.toUpperCase()}
-                    </h1>
-                    <div ref={profileRef} className="p-5 rounded-lg bg-[#121212] border border-[#424242] absolute top-[110%] right-0 flex flex-col items-start justify-center"
-                    onBlur={handleBlurProfile}
-                    style={{display: 'none'}}
-                    >
-                      <div className="w-full flex items-center justify-between gap-3">
-                        <div className="xl:px-4 px-2 aspect-square bg-[#FF4081] rounded-full font-Poppins font-semibold xl:text-3xl text-lg flex items-center justify-center">{initialUsername.toUpperCase()}</div>
-                        <div className="flex flex-col items-start">
-                          <h1 className="xl:text-base text-sm">Halo, {loggedInUser.username}</h1>
-                        </div>
-                      </div>
-                      <button className="w-full flex items-center justify-end mt-2 gap-1"
-                      onClick={handleLogOut}
-                      >
-                        <MdLogout size={20}/>
-                        <h1 className="xl:text-sm text-xs">Log Out</h1>
-                      </button>
-                    </div>
-                  </button>
-                )}            
-              </div> 
-              <button
-              onClick={handleClickBurger}
-              className="xl:hidden md:w-6 w-5 p-[2px] aspect-square flex flex-col items-end justify-between">
-                <div className="w-full h-[2px] bg-[#FF4081]"></div>
-                <div className="w-2/3 h-[2px] bg-[#FF4081]"></div>
-                <div className="w-1/3 h-[2px] bg-[#FF4081]"></div>
-              </button>
             </div>
-            <div ref={burgerNavRef} className="xl:hidden w-full p-3 pb-20 absolute top-full left-1/2 -translate-x-1/2 bg-[#212121] hidden flex-col items-center justify-start gap-1">
-              <div className="searchBar w-full xl:hidden">
-                <div className="w-full relative flex justify-center items-center">
-                  <input id="searchInput" onBlur={handleBlur} type="text" className="w-full outline-none xl:p-2 p-2 xl:px-4 px-3 rounded-full border-[#FFFFFF] xl:border-2 border bg-[#424242] text-[#FFFFFF]"
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  onKeyDown={handleKeyDown}/>
-                  <label id="searchLabel" className={`absolute xl:left-5 left-3 text-[#ffffffa7] pointer-events-none ${keyword.trim() ? 'hidden' : 'block'}`}>{currentPlaceholders}</label>
-                  <button
-                  onClick={() => {
-                    burgerNavRef.current.classList.replace('flex', 'hidden');
-                    setIsClick(!isClick)
-                    handleSearch()
-                  }} 
-                  className="absolute xl:right-5 right-3 text-[#FFFFFF] text-xl"><IoIosSearch /></button>
+            <div ref={mobileSearchRef} style={{display: 'none'}} className="searchBar w-full sm:hidden z-50 absolute top-[105%] left-0">
+              <div className="w-full relative flex justify-center items-center z-50">
+                <input id="searchInput" className="w-full outline-none sm:p-2 p-2 sm:px-4 px-3 rounded-full border-[#FFFFFF] xl:border-2 border bg-[#424242] text-[#FFFFFF] sm:text-base text-sm appearance-none z-50"
+                type="text"
+                value={keyword}
+                onBlur={handleMobileSearchBlur}
+                onFocus={handleMobileSearchFocus}
+                onChange={(e) => {
+                  setKeyword(e.target.value)
+                  getSearchSuggest()
+                }}
+                onKeyDown={handleKeyDown}/>
+                <label id="searchLabel" className={`absolute xl:left-5 left-3 text-[#ffffffa7] pointer-events-none ${keyword.trim() ? 'hidden' : 'block'} z-50 sm:text-base text-sm`}>{currentPlaceholders}</label>
+                <button
+                onClick={handleSearch} 
+                className="absolute xl:right-5 right-3 text-[#FFFFFF] xl:text-2xl text-xl z-50"><IoIosSearch /></button>
+                <div ref={mobileSearchSuggestRef} style={{display: "none"}} className="w-full flex flex-col items-center justify-start bg-[#121212] absolute top-full z-50">
+                  {keyword.length === 0 ? (
+                    <div className=""></div>
+                  ) : (
+                    searchSuggest.map((item) => (
+                      <button 
+                      onClick={() => {
+                        navigate(`/product/${item.id}`)
+                        handleBlur();
+                        setKeyword('');
+                      }}
+                      key={item.id} 
+                      className="w-full p-2 flex items-center justify-start border-b-[1px] border-b-white gap-2">
+                        <div className="sm:w-10 w-8 aspect-square overflow-hidden bg-white">
+                          <img 
+                            src={`/imgProduct/img${item.id}.jpeg`}
+                            alt={item.nama} 
+                            className="w-full h-full object-contain"
+                            />
+                        </div>
+                        <h1 className="font-Poppins sm:text-base text-sm font-medium text-[#FFFFFF]">{highlightMatch(item.nama, keyword)}</h1>
+                      </button>
+                    ))
+                  )} 
                 </div>
-              </div>
-              <div className="w-full flex flex-col items-center justify-start">
-                <Link 
-                to={'/'}
-                onClick={() => {
-                  burgerNavRef.current.classList.replace('flex', 'hidden');
-                  setIsClick(!isClick)
-                }}
-                className="w-full p-1 text-[white] font-Poppins font-semibold text-base text-center border-y border-[#FFFFFF]">Home</Link>
-                <Link 
-                to={'/about'}
-                onClick={() => {
-                  burgerNavRef.current.classList.replace('flex', 'hidden');
-                  setIsClick(!isClick)
-                }}
-                className="w-full p-1 text-[white] font-Poppins font-semibold text-base text-center border-y border-[#FFFFFF]">Tentang Kami</Link>
               </div>
             </div>
           </nav>
@@ -323,5 +394,10 @@ const Navbar = () => {
     </>
   )
 }
+
+// Navbar.propTypes = {
+//   fileRef: PropTypes.object.isRequired,
+//   setIsBarClick: PropTypes.bool.isRequired
+// }
 
 export default Navbar

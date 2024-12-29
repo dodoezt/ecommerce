@@ -3,14 +3,15 @@ import cors from 'cors';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
 
+const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const pool = mysql.createPool({
     host: 'localhost',
-    user: 'root',
-    password: '', 
+    user: 'dodoezt',
+    password: 'aldo8765', 
     database: 'e_commerce_db' 
 });
 
@@ -146,22 +147,32 @@ app.get('/cart/:id', async (req, res) => {
     }
 });
 
-app.post('/cart', async (req, res) => {
+app.get('/cartByUser/:username', async (req, res) => {
     try {
-        const { id, productName, harga, lokasi, terjual, rating, stok, jumlah } = req.body;
-
-        const query = `
-            INSERT INTO cart (id, nama, harga, lokasi, terjual, rating, stok, jumlah) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
-        const [result] = await pool.query(query, [id, productName, harga, lokasi, terjual, rating, stok, jumlah]);
-        res.status(201).json({ msg: "Product created", productId: result.insertId });
+        const username = `${req.params.username}`
+        const [rows] = await pool.query('SELECT * FROM cart WHERE username = ?', [username]);
+        res.status(200).json(rows)
     } catch (err) {
         console.error(err.message);
-        if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(400).json({ error: "Product with this name already exists in the cart" });
-        }
-        res.status(500).json({ error: "Failed to create product" });
+        res.status(500).json({ error: "Failed to fetch products" });
+    }
+});
+
+app.post('/cart', async (req, res) => {
+    try {
+        const { id, username, productName, harga, lokasi, terjual, rating, stok, jumlah } = req.body;
+
+        const query = `
+            INSERT INTO cart (product_id, username, nama, harga, lokasi, terjual, rating, stok, jumlah) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE 
+                jumlah = jumlah + VALUES(jumlah)
+        `;
+
+        const [result] = await pool.query(query, [id, username, productName, harga, lokasi, terjual, rating, stok, jumlah]);
+        res.status(201).json({ msg: "Product inserted/updated successfully", productId: result.insertId || id });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to process the request" });
     }
 });
 
@@ -347,6 +358,131 @@ app.patch('/users/:id', async (req, res) => {
     }
 })
 
+app.get('/checkout', async (req, res) => {
+    try {
+        const [rows] = await pool.query("SELECT * FROM checkout");
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to fetch checkout" });
+    }
+});
+
+app.get('/checkout/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        const [rows] = await pool.query("SELECT * FROM checkout WHERE id = ?", [id])
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'failed to fetch from checkout'})
+    }
+})
+
+app.get('/checkoutByUser/:username', async (req, res) => {
+    try {
+        const username = req.params.username;
+        const [rows] = await pool.query(`
+            SELECT product_id, nama, harga, jumlah, 
+                   DATE_FORMAT(CONVERT_TZ(tanggal, '+00:00', '+07:00'), '%Y-%m-%d') AS tanggal
+            FROM checkout 
+            WHERE username = ?`, [username]);
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ msg: 'Failed to fetch from checkout' });
+    }
+});
+
+app.post('/checkoutOneItem', async (req, res) => {
+    try {
+        const { product_id, username, nama, harga, jumlah, tanggal } = req.body;
+
+        const insertCheckoutQuery = `
+            INSERT INTO checkout (product_id, username, nama, harga, jumlah, tanggal)
+            VALUES (?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE 
+                jumlah = jumlah + VALUES(jumlah)
+        `;
+        await pool.query(insertCheckoutQuery, [product_id, username, nama, harga, jumlah, tanggal]);
+
+        const updateStokQuery = `UPDATE product SET stok = stok - ? WHERE id = ?`
+
+        await pool.query(updateStokQuery, [jumlah ,product_id]);
+
+        res.status(200).json({ message: 'Checkout successful and item removed from cart' });
+    } catch (error) {
+        console.error('Error during checkoutOneItem:', error.message);
+        res.status(500).json({ error: 'Failed to checkout item' });
+    }
+});
 
 
-app.listen(3001, () => console.log("Server is running on port 3001"));
+app.post('/checkout', async (req, res) => {
+    const { username, cartItems } = req.body;
+
+    if (!username || !Array.isArray(cartItems) || cartItems.length === 0) {
+        return res.status(400).json({ error: "Invalid request: Missing username or cart items" });
+    }
+
+    const connection = await pool.getConnection();
+    try {
+        await connection.beginTransaction();
+
+        for (const item of cartItems) {
+            const { product_id, nama, harga, jumlah, tanggal } = item;
+
+            const [productRows] = await connection.query(
+                `SELECT stok FROM product WHERE id = ?`,
+                [product_id]
+            );
+            const product = productRows[0];
+
+            if (!product || product.stok < jumlah) {
+                throw new Error(`Insufficient stock for product ID ${product_id}`);
+            }
+
+            await connection.query(
+                `UPDATE product SET stok = stok - ? WHERE id = ?`,
+                [jumlah, product_id]
+            );
+
+            await connection.query(
+                `INSERT INTO checkout (product_id, username, nama, harga, jumlah, tanggal) 
+                 VALUES (?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE 
+                    jumlah = jumlah + VALUES(jumlah)
+                 `,    
+                [product_id, username, nama, harga, jumlah, tanggal]
+            );
+        }
+
+        const itemIds = cartItems.map(item => item.product_id);
+        await connection.query(
+            `DELETE FROM cart WHERE username = ? AND product_id IN (?)`,
+            [username, itemIds]
+        );
+
+        await connection.commit();
+        res.status(200).json({ message: "Checkout completed successfully" });
+    } catch (err) {
+        await connection.rollback();
+        console.error(`Checkout error: ${err.message}`);
+        res.status(500).json({ error: `Checkout failed: ${err.message}` });
+    } finally {
+        connection.release();
+    }
+});
+
+
+app.delete('/cart/:id' , async (req, res) => {
+    try{
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ error: "Failed to delete cart items" });
+    }
+})
+
+
+app.listen(port, () => console.log("Server is running on port 3001"));

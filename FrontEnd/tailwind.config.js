@@ -16,10 +16,22 @@ export default {
           '0%' : 'opacity(0)',
           '10%' : 'opacity(100)'
         },
+        'wave' : {
+          "0%": {
+            "background-position": "-200% 0",
+          },
+          "50%": {
+            "background-position": "200% 0",
+          },
+          "100%": {
+            "background-position": "-200% 0",
+          },
+        },
       },
       animation : {
         'bounce' : 'bounce 1s ease-in-out infinite',
-        'fadein' : 'fadein 0.3s ease'
+        'fadein' : 'fadein 0.3s ease',
+        'wave' : "wave 2s linear infinite",
       },
       fontFamily : {
         'Parkinsans' : ["Parkinsans", "sans-serif"],

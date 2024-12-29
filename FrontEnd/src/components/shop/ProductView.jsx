@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {useParams} from 'react-router';
 import { FaStar } from "react-icons/fa";
 import { IoIosArrowUp } from "react-icons/io";
@@ -11,8 +11,10 @@ import { IoIosCart } from "react-icons/io";
 import { FaCircleCheck } from "react-icons/fa6";
 import { MdCancel } from "react-icons/md";
 import { emitter } from './eventEmitter'
+import { useUser } from './ManageContext';
+import PropTypes from 'prop-types';
 
-const ProductView = () => {
+const ProductView = ({handleAlert}) => {
     const [productName, setProductName] = useState('');
     const [harga, setHarga] = useState(0);
     const [lokasi, setLokasi] = useState('');
@@ -25,8 +27,13 @@ const ProductView = () => {
     const [spesifikasi, setSpesifikasi] = useState('');
     const [jumlah, setJumlah] = useState(1);
     const [isLocked, setIsLocked] = useState(false);
+    const [isKonfirmasiClicked, setIsKonfirmasiClicked] = useState(true);
     const currentJumlah = jumlah;
     const { id } = useParams();
+    const { username } = useUser();
+
+    const konfirmasiPembelianRef = useRef();
+    const overlayRef = useRef();
 
     useEffect(() => {
         getProductById();
@@ -50,14 +57,14 @@ const ProductView = () => {
         }
     }
 
-    const insertCartItems = async (e) => {
-        e.preventDefault();
+    const insertCartItems = async () => {
         if (isLocked) return; 
         setIsLocked(true);
-        
+
         try {
             await axios.post('http://localhost:3001/cart', {
                 id,
+                username,
                 productName,
                 harga,
                 lokasi,
@@ -80,26 +87,40 @@ const ProductView = () => {
                 setIsLocked(false);
             }, 3100);
             
-        } catch (err) {
-            if (err.response && err.response.status === 400) {
-                const cartNotifyFailed = document.getElementById('cartNotifyFailed');
-                cartNotifyFailed.classList.replace('hidden', 'flex');
-                setTimeout(() => {
-                    cartNotifyFailed.classList.replace('-bottom-10', 'bottom-0');
-                    cartNotifyFailed.classList.add('addedCartStart');
-                }, 100);
-                setTimeout(() => {
-                    cartNotifyFailed.classList.replace('bottom-0', '-bottom-10');
-                    cartNotifyFailed.classList.remove('addedCartStart');
-                    cartNotifyFailed.classList.replace('flex', 'hidden');
-                    setIsLocked(false);
-                }, 3100);
-            } else {
-                console.error("Error adding item to cart:", err);
-                setIsLocked(false); 
-            }
+        } catch {
+            const cartNotifyFailed = document.getElementById('cartNotifyFailed');
+            cartNotifyFailed.classList.replace('hidden', 'flex');
+            setTimeout(() => {
+                cartNotifyFailed.classList.replace('-bottom-10', 'bottom-0');
+                cartNotifyFailed.classList.add('addedCartStart');
+            }, 100);
+            setTimeout(() => {
+                cartNotifyFailed.classList.replace('bottom-0', '-bottom-10');
+                cartNotifyFailed.classList.remove('addedCartStart');
+                cartNotifyFailed.classList.replace('flex', 'hidden');
+                setIsLocked(false);
+            }, 3100);
         }
     };
+
+    const handleCheckout = async() => {
+        const currentDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+        const payload = {
+            product_id : id,
+            username,
+            nama: productName,
+            harga: harga,
+            jumlah: jumlah,
+            tanggal: currentDate    
+        }
+        try {
+            await axios.post('http://localhost:3001/checkoutOneItem', payload)
+            alert('checkout berhasil')
+            handleKonfirmasiPembelian()
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const handleClickDetail = () => {
         const navDetail = document.getElementById('navDetail');
@@ -149,6 +170,26 @@ const ProductView = () => {
         btnLihatSelengkapnya.classList.replace('hidden', 'block');
         btnSembunyikan.classList.replace('flex', 'hidden');
     }
+
+    const handleKonfirmasiPembelian = () => {
+        setIsKonfirmasiClicked(!isKonfirmasiClicked)
+        const overlay = overlayRef.current;
+        const konfirmasiPembelian = konfirmasiPembelianRef.current
+
+        if(isKonfirmasiClicked === true) {
+            konfirmasiPembelian.classList.replace('hidden', 'flex');
+            setTimeout(() => {
+                konfirmasiPembelian.classList.replace('scale-0', 'scale-100');
+                overlay.classList.replace('hidden', 'block')
+            }, 100)
+        } else {
+            konfirmasiPembelian.classList.replace('scale-100', 'scale-0');
+            overlay.classList.replace('block', 'hidden')
+            setTimeout(() => {
+                konfirmasiPembelian.classList.replace('flex', 'hidden');
+            }, 300)
+        }
+    }
     
     const formatCurrency = (amount) => {
         const formatter = new Intl.NumberFormat('id-ID', {
@@ -179,12 +220,54 @@ const ProductView = () => {
     const subtotal = harga * jumlah;
 
     return (
+        <>
+        <div ref={overlayRef} className="overlay z-[100] hidden"></div>
+        <div ref={konfirmasiPembelianRef} className="fixed w-1/3 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#121212] p-5 z-[110] rounded-xl border border-[#ff4081] hidden flex-col font-Poppins transition-all ease 300 scale-0">
+            <header className="w-full flex items-center justify-start">
+                <h1 className="text-base font-semibold text-white">
+                    Konfirmasi pembelian
+                </h1>
+            </header>
+            <main className='w-full flex flex-col gap-1 mt-2'>
+                <div className="w-full flex items-start gap-3">
+                    <div className="w-[15%] aspect-square bg-white overflow-hidden">
+                        <img src={`/imgProduct/img${id}.jpeg`} alt={productName} className="w-full h-full object-contain"/>
+                    </div>
+                    <div className="flex flex-col">
+                        <h1 className="text-lg font-normal text-white">{productName}</h1>
+                        <div className="flex gap-1">
+                            <h1 className="text-base font-normal text-[#ff4081]">Rp</h1>
+                            <h1 className="text-base font-normal text-white">{formatCurrency(harga)}</h1>
+                        </div>
+                    </div>
+                </div>
+                <div className="w-full">
+                    <p className='text-white text-base'>Anda memesan <strong>{productName}</strong> sebanyak <strong>{jumlah}</strong> buah</p>
+                </div>
+                <h1 className="text-white text-base font-semibold">Total pembayaran :</h1>
+                <div className="flex gap-1">
+                    <h1 className="text-[#ff4081] text-base font-semibold">Rp</h1>
+                    <h1 className="text-white text-base font-normal">{formatCurrency(subtotal)}</h1>
+                </div>
+                <div className="w-full flex items-center justify-between gap-5">
+                    <button className="flex-1 p-2 flex items-center justify-center text-white border border-[#ff4081] rounded-lg transition-all ease duration-200 hover:border-[#ff40809e]"
+                    onClick={handleKonfirmasiPembelian}
+                    >Cancel</button>
+                    <button className="flex-1 p-2 flex items-center justify-center text-white bg-[#ff4081] rounded-lg transition-all ease duration-200 hover:bg-[#ff40809e]"
+                    onClick={handleCheckout}
+                    >Beli Sekarang</button>
+                </div>
+            </main>
+        </div>
         <div className='w-full h-full relative'>
             <div className='w-full flex xl:flex-row md:flex-row flex-col items-start justify-center pt-20 gap-5 relative'>
-                <div className="img flex-1 m-5 h-full bg-white xl:sticky md:sticky top-24">
+                <div className="img flex-1 xl:m-5 m-5 h-full bg-white xl:sticky md:sticky md:hidden xl:block top-24">
                     <img src={`/imgProduct/img${id}.jpeg`} alt={productName} className='w-full aspect-square object-contain'/>
                 </div>
-                <div className="keteranganProduk flex-[2] flex flex-col justify-start items-center p-5">
+                <div className="keteranganProduk xl:flex-[2] flex-[2] md:flex-1 flex flex-col justify-start items-center p-5">
+                    <div className="img w-full m-5 xl:hidden hidden md:block bg-white top-24">
+                        <img src={`/imgProduct/img${id}.jpeg`} alt={productName} className='w-full aspect-square object-contain'/>
+                    </div>
                     <div className="w-full flex flex-col items-start justify-center">
                         <h1 className='text-2xl font-Poppins text-[#FFFFFF] font-semibold'>{productName}</h1>
                         <div className="w-full flex items-center justify-start gap-2 font-Poppins">
@@ -317,11 +400,16 @@ const ProductView = () => {
                             <h1 className="font-Poppins text-base text-white">{formatCurrency(subtotal)}</h1>
                         </div>
                         <div className="w-full flex items-center gap-3">
-                            <button className="flex-1 p-2 bg-[#FF4081] text-center text-white text-sm font-Poppins rounded-lg transition-all ease duration-200 hover:bg-[#d02e64]">
+                            <button className="flex-1 p-2 bg-[#FF4081] text-center text-white text-sm font-Poppins rounded-lg transition-all ease duration-200 hover:bg-[#d02e64]"
+                            onClick={handleKonfirmasiPembelian}
+                            >
                                 Beli Sekarang
                             </button>
                             <button className="flex items-center flex-1 p-2 border border-[#FF4081] text-center text-white text-base font-Poppins"
-                            onClick={insertCartItems}
+                            onClick={() => {
+                                username ? insertCartItems( ) 
+                                : handleAlert()
+                            }}
                             >
                                 <IoIosCart size={30} className="text-[#FF4081]"/>
                                 <h1 className='text-whte text-sm font-Poppins'>Masukan Keranjang</h1>
@@ -336,10 +424,15 @@ const ProductView = () => {
             </div>
             <div id='cartNotifyFailed' className="addedCartFailed w-full fixed -bottom-10 z-30 p-2 hidden justify-center items-center bg-white text-center gap-1 transition-all ease duration-300">
                 <MdCancel size={20} className='text-[#ff1818]'/>
-                <h1 className='font-Poppins text-[#121212] text-base'>item sudah ada di keranjang </h1>
+                <h1 className='font-Poppins text-[#121212] text-base'>gagal, coba lagi </h1>
             </div>
         </div>
+        </>
     )
+}
+
+ProductView.propTypes = {
+    handleAlert: PropTypes.func.isRequired,
 }
 
 export default ProductView

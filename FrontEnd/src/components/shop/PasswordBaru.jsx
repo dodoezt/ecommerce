@@ -1,13 +1,21 @@
 import { useNavigate, useParams } from "react-router-dom"
 import { useState, useRef } from "react"
 import axios from "axios"
+import { FaRegEye } from "react-icons/fa6";
+import { FaRegEyeSlash } from "react-icons/fa6";
 
 const PasswordBaru = () => {
     const [passwordBaru, setPasswordBaru] = useState('')
     const [konfirmasiPasswordBaru, setKonfirmasiPasswordBaru] = useState('')
     const [logError, setLogError] = useState('')
+    const [inputType, setInputType] = useState('password');
+    const [konfirmasiInputType, setKonfirmasiInputType] = useState('password');
     const {id} = useParams();
 
+    const eyeRef = useRef(null);
+    const eyeSlashRef = useRef(null);
+    const eyeRefKonfirmasi = useRef(null);
+    const eyeSlashRefKonfirmasi = useRef(null);
     const passwordBaruRef = useRef(null);
     const konfirmasiPasswordBaruRef = useRef(null);
     
@@ -47,24 +55,72 @@ const PasswordBaru = () => {
                 <h1 className="font-Poppins text-[#FF4081] font-semibold xl:text-3xl md:text-2xl text-xl">Buat Password Barumu</h1>
                 <div className="w-full flex flex-col justify-center gap-1">
                     <h1 className="Username text-[#121212] text-lg font-semibold">Password Baru</h1>
-                    <input type="text" className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
-                    placeholder="Password barumu"
-                    value={passwordBaru}
-                    onChange={(e) => setPasswordBaru(e.target.value)}
-                    autoComplete="username"
-                    ref={passwordBaruRef}
-                    onKeyDown={(e) => handleKeyDown(e, konfirmasiPasswordBaruRef)}
-                    />
+                   <div className="relative flex items-center justify-center">
+                        <input type={inputType} className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
+                        placeholder="Password Barumu"
+                        value={passwordBaru}
+                        onChange={(e) => setPasswordBaru(e.target.value)}
+                        autoComplete="current-password"
+                        ref={passwordBaruRef}
+                        onKeyDown={(e) => handleKeyDown(e, konfirmasiPasswordBaruRef)}
+                        />
+                        <button ref={eyeRef} className="absolute right-3 p-1"
+                        onClick={(e)=> {
+                            e.preventDefault()
+                            eyeRef.current.classList.add("hidden");
+                            eyeSlashRef.current.classList.remove("hidden");
+                            setInputType('text');
+                        }}
+                        type="button"
+                        >
+                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
+                        </button>
+                        <button ref={eyeSlashRef} className="absolute right-3 hidden p-1"
+                        onClick={(e)=> {
+                            e.preventDefault()
+                            eyeSlashRef.current.classList.add("hidden");
+                            eyeRef.current.classList.remove("hidden");
+                            setInputType('password')
+                        }}
+                        type="button"
+                        >
+                            <FaRegEye size={20} className="text-[#FF4081]"/>
+                        </button>
+                    </div>
                 </div>
                 <div className="w-full flex flex-col justify-center gap-1">
                     <h1 className="kataKunci text-[#121212] text-lg font-semibold">Konfirmasi Password Baru</h1>
-                    <input type="text" className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
-                    placeholder="Konfirmasi Password barumu"
-                    value={konfirmasiPasswordBaru}
-                    onChange={(e) => setKonfirmasiPasswordBaru(e.target.value)}
-                    autoComplete="current-kataKunci"
-                    ref={konfirmasiPasswordBaruRef}
-                    />
+                    <div className="relative flex items-center justify-center">
+                        <input type={konfirmasiInputType} className="w-full p-3 border border-[#121212] text-[#121212] outline-none"
+                        placeholder="Konfirmasi Password Barumu"
+                        value={konfirmasiPasswordBaru}
+                        onChange={(e) => setKonfirmasiPasswordBaru(e.target.value)}
+                        autoComplete="current-password"
+                        ref={konfirmasiPasswordBaruRef}
+                        />
+                        <button ref={eyeRefKonfirmasi} className="absolute right-3 p-1"
+                        onClick={(e)=> {
+                            e.preventDefault()
+                            eyeRefKonfirmasi.current.classList.add("hidden");
+                            eyeSlashRefKonfirmasi.current.classList.remove("hidden");
+                            setKonfirmasiInputType('text');
+                        }}
+                        type="button"
+                        >
+                            <FaRegEyeSlash size={20} className="text-[#FF4081]"/>
+                        </button>
+                        <button ref={eyeSlashRefKonfirmasi} className="absolute right-3 hidden p-1"
+                        onClick={(e)=> {
+                            e.preventDefault()
+                            eyeSlashRefKonfirmasi.current.classList.add("hidden");
+                            eyeRefKonfirmasi.current.classList.remove("hidden");
+                            setKonfirmasiInputType('password')
+                        }}
+                        type="button"
+                        >
+                            <FaRegEye size={20} className="text-[#FF4081]"/>
+                        </button>
+                    </div>
                 </div>
                 <div className="w-full flex justify-start items-center gap-1">
                     <h1 className="text-[#FF0000] font-Poppins text-base italic">{logError}</h1>
