@@ -24,7 +24,7 @@ const PasswordBaru = () => {
     const handlePulihkanAkun = async (event) => {
         event.preventDefault();
         try {
-            await axios.patch(`http://localhost:3001/users/${id}`, {
+            await axios.patch(`http://localhost:3001/api/users/${id}`, {
                 passwordBaru,
                 konfirmasiPasswordBaru
             });

@@ -69,7 +69,7 @@ const MainPage = ( {trendingProductRef, allProductRef} ) => {
     const getTrendingProduct = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3001/trending');
+            const response = await axios.get('http://localhost:3001/api/trending');
             setTrendingProduct(response.data);
             console.log(response.data);
         } catch (error) {
@@ -84,8 +84,8 @@ const MainPage = ( {trendingProductRef, allProductRef} ) => {
         try {
             const response = await axios.get(
                 selectedCategories.length > 0
-                ? `http://localhost:3001/filter/${selectedCategories.join(',')}`
-                : 'http://localhost:3001/shop'
+                ? `http://localhost:3001/api/filter/${selectedCategories.join(',')}`
+                : 'http://localhost:3001/api/product'
             )
             setProduct(response.data);
             console.log(response.data);

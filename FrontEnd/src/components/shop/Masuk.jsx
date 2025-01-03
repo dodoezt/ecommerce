@@ -20,7 +20,7 @@ const Masuk = () => {
     const handleMasuk = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post(`http://localhost:3001/login`, {
+            const response = await axios.post(`http://localhost:3001/api/login`, {
                 username,
                 password
             });

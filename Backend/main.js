@@ -17,7 +17,7 @@ const pool = mysql.createPool({
 
 // Routes
 
-app.get('/shop', async (req, res) => {
+app.get('/api/product', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM product");
         res.status(200).json(rows);
@@ -27,7 +27,7 @@ app.get('/shop', async (req, res) => {
     }
 });
 
-app.get('/shop/:id', async (req, res) => {
+app.get('/api/product/:id', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM product WHERE id = ?", [req.params.id]);
         if (rows.length > 0) {
@@ -41,7 +41,7 @@ app.get('/shop/:id', async (req, res) => {
     }
 });
 
-app.post('/shop', async (req, res) => {
+app.post('/api/product', async (req, res) => {
     try {
         const { nama, harga, lokasi, terjual, rating } = req.body;
         const query = `
@@ -56,7 +56,7 @@ app.post('/shop', async (req, res) => {
     }
 });
 
-app.patch('/shop/admin/:id', async (req, res) => {
+app.patch('/api/product/admin/:id', async (req, res) => {
     try {
         const { nama, harga, lokasi, terjual, rating } = req.body;
         const query = `
@@ -76,7 +76,7 @@ app.patch('/shop/admin/:id', async (req, res) => {
     }
 });
 
-app.delete('/shop/admin/:id', async (req, res) => {
+app.delete('/api/product/admin/:id', async (req, res) => {
     try {
         const [result] = await pool.query("DELETE FROM product WHERE id = ?", [req.params.id]);
         if (result.affectedRows > 0) {
@@ -90,7 +90,7 @@ app.delete('/shop/admin/:id', async (req, res) => {
     }
 });
 
-app.get('/trending', async (req, res) => {
+app.get('/api/trending', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM product WHERE terjual >= 3000");
         res.status(200).json(rows);
@@ -100,7 +100,7 @@ app.get('/trending', async (req, res) => {
     }
 });
 
-app.get('/search/:keyword', async (req, res) => {
+app.get('/api/search/:keyword', async (req, res) => {
     try {
         const keyword = `%${req.params.keyword}%`
         const [rows] = await pool.query("SELECT * FROM product WHERE nama LIKE ? OR kategori LIKE ?", [keyword, keyword]);
@@ -111,7 +111,7 @@ app.get('/search/:keyword', async (req, res) => {
     }
 });
 
-app.get('/filter/:kategori', async (req, res) => {
+app.get('/api/filter/:kategori', async (req, res) => {
     try {
         const categories = req.params.kategori.split(',');
 
@@ -127,7 +127,7 @@ app.get('/filter/:kategori', async (req, res) => {
 
 // cart
 
-app.get('/cart', async (req, res) => {
+app.get('/api/cart', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM cart')
         res.status(200).json(rows)
@@ -137,7 +137,7 @@ app.get('/cart', async (req, res) => {
     }
 });
 
-app.get('/cart/:id', async (req, res) => {
+app.get('/api/cart/:id', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM cart WHERE id = ?', [req.params.id]);
         res.status(200).json(rows[0])
@@ -147,7 +147,7 @@ app.get('/cart/:id', async (req, res) => {
     }
 });
 
-app.get('/cartByUser/:username', async (req, res) => {
+app.get('/api/cartByUser/:username', async (req, res) => {
     try {
         const username = `${req.params.username}`
         const [rows] = await pool.query('SELECT * FROM cart WHERE username = ?', [username]);
@@ -158,7 +158,7 @@ app.get('/cartByUser/:username', async (req, res) => {
     }
 });
 
-app.post('/cart', async (req, res) => {
+app.post('/api/cart', async (req, res) => {
     try {
         const { id, username, productName, harga, lokasi, terjual, rating, stok, jumlah } = req.body;
 
@@ -177,7 +177,7 @@ app.post('/cart', async (req, res) => {
 });
 
 
-app.patch('/cart/:id', async (req, res) => {
+app.patch('/api/cart/:id', async (req, res) => {
     try {
         const { jumlah } = req.body;
         const id = req.params.id;
@@ -202,7 +202,7 @@ app.patch('/cart/:id', async (req, res) => {
     }
 });
 
-app.delete('/cart/:id', async (req, res) => {
+app.delete('/api/cart/:id', async (req, res) => {
     try {
         const query = 'DELETE FROM cart WHERE id = ?';
 
@@ -220,7 +220,7 @@ app.delete('/cart/:id', async (req, res) => {
 
 //Users
 
-app.get('/users', async (req, res) => {
+app.get('/api/users', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM users");
         res.status(200).json(rows);
@@ -230,7 +230,7 @@ app.get('/users', async (req, res) => {
     }
 });
 
-app.get('/users/:id', async (req, res) => {
+app.get('/api/users/:id', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [req.params.id]); 
         res.status(200).json(rows);
@@ -240,7 +240,7 @@ app.get('/users/:id', async (req, res) => {
     }
 });
 
-app.post('/users', async (req, res) => {
+app.post('/api/users', async (req, res) => {
     try {
         const { username, password, konfirmasiPassword, kataKunci } = req.body;
 
@@ -273,7 +273,7 @@ app.post('/users', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -304,7 +304,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.post('/retriveaccount', async (req, res) => {
+app.post('/api/retriveaccount', async (req, res) => {
     const { username, kataKunci } = req.body;
 
     try {
@@ -335,7 +335,7 @@ app.post('/retriveaccount', async (req, res) => {
     }
 });
 
-app.patch('/users/:id', async (req, res) => {
+app.patch('/api/users/:id', async (req, res) => {
     try{
         const { passwordBaru, konfirmasiPasswordBaru } = req.body;
         const id = req.params.id;
@@ -358,7 +358,7 @@ app.patch('/users/:id', async (req, res) => {
     }
 })
 
-app.get('/checkout', async (req, res) => {
+app.get('/api/checkout', async (req, res) => {
     try {
         const [rows] = await pool.query("SELECT * FROM checkout");
         res.status(200).json(rows);
@@ -368,7 +368,7 @@ app.get('/checkout', async (req, res) => {
     }
 });
 
-app.get('/checkout/:id', async (req, res) => {
+app.get('/api/checkout/:id', async (req, res) => {
     try {
         const id = req.params.id;
         const [rows] = await pool.query("SELECT * FROM checkout WHERE id = ?", [id])
@@ -379,7 +379,7 @@ app.get('/checkout/:id', async (req, res) => {
     }
 })
 
-app.get('/checkoutByUser/:username', async (req, res) => {
+app.get('/api/checkoutByUser/:username', async (req, res) => {
     try {
         const username = req.params.username;
         const [rows] = await pool.query(`
@@ -394,7 +394,7 @@ app.get('/checkoutByUser/:username', async (req, res) => {
     }
 });
 
-app.post('/checkoutOneItem', async (req, res) => {
+app.post('/api/checkoutOneItem', async (req, res) => {
     try {
         const { product_id, username, nama, harga, jumlah, tanggal } = req.body;
 
@@ -418,7 +418,7 @@ app.post('/checkoutOneItem', async (req, res) => {
 });
 
 
-app.post('/checkout', async (req, res) => {
+app.post('/api/checkout', async (req, res) => {
     const { username, cartItems } = req.body;
 
     if (!username || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -475,7 +475,7 @@ app.post('/checkout', async (req, res) => {
 });
 
 
-app.delete('/cart/:id' , async (req, res) => {
+app.delete('/api/cart/:id' , async (req, res) => {
     try{
 
     } catch (err) {

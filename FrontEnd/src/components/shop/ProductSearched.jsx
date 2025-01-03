@@ -18,7 +18,7 @@ const ProductSearched = () => {
 
     const getProductsSearched = async () => {
         try {
-            const response = await axios.get(`http://localhost:3001/search/${keyword}`)
+            const response = await axios.get(`http://localhost:3001/api/search/${keyword}`)
             setProducts(response.data)
             console.log(response.data)
         } catch(err){

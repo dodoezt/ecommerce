@@ -28,7 +28,7 @@ const Daftar = () => {
     const handleDaftar = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:3001/users', {
+            await axios.post('http://localhost:3001/api/users', {
                 username,
                 password,
                 konfirmasiPassword,

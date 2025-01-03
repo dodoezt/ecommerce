@@ -28,7 +28,7 @@ const Cart = () => {
   const getCartItemsByUser = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3001/cartByUser/${username}`);
+      const response = await axios.get(`http://localhost:3001/api/cartByUser/${username}`);
       const fetchedItems = response.data;
       console.log(response.data );
 
@@ -74,7 +74,7 @@ const Cart = () => {
             })),
         };
 
-        await axios.post('http://localhost:3001/checkout', payload);
+        await axios.post('http://localhost:3001/api/checkout', payload);
         alert("checkout berhasil");
         getCartItemsByUser();
     } catch (error) {
@@ -92,7 +92,7 @@ const Cart = () => {
 
   const updateCartItems = async (id, value) => {
     try {
-      await axios.patch(`http://localhost:3001/cart/${id}`, {
+      await axios.patch(`http://localhost:3001/api/cart/${id}`, {
         jumlah: value,
       });
       console.log(`Updated item ${id} with jumlah: ${count[id]}`);
@@ -103,7 +103,7 @@ const Cart = () => {
 
   const deleteCartItem = async (id) => {
     try {
-      await axios.delete(`http://localhost:3001/cart/${id}`)
+      await axios.delete(`http://localhost:3001/api/cart/${id}`)
       console.log(`Deleted Item ${id}`);
     } catch (error) {
       console.log(error.message);

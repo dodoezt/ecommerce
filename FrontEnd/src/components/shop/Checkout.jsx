@@ -33,7 +33,7 @@ const Checkout = () => {
 
     const getCheckoutItems = async () => {
         try {
-            const response = await axios.get(`http://localhost:3001/checkoutByUser/${username}`);
+            const response = await axios.get(`http://localhost:3001/api/checkoutByUser/${username}`);
             setCheckoutItems(response.data);
             console.log(response.data);
         } catch (error) {

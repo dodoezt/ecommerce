@@ -16,7 +16,7 @@ const LupaPassword = () => {
     const handlePulihkanAkun = async (event) => {
         event.preventDefault();
         try {
-            const response = await axios.post(`http://localhost:3001/retriveaccount`, {
+            const response = await axios.post(`http://localhost:3001/api/retriveaccount`, {
                 username,
                 kataKunci
             });

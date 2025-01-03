@@ -31,19 +31,19 @@ const Navbar = () => {
   const historiSpanRef = useRef(null)
 
   const fetchData = async () => {
-    const response = await axios.get('http://localhost:3001/shop');
+    const response = await axios.get('http://localhost:3001/api/product');
     const names = response.data.map((item) => item.nama);
     setPlaceholders(names);
   }  
 
   const fetchDataCart = async () => {
-    const response = await axios.get(`http://localhost:3001/cartByUser/${username}`);
+    const response = await axios.get(`http://localhost:3001/api/cartByUser/${username}`);
     setCartItems(response.data);
   };
 
   const getSearchSuggest = async () => {
     try {
-      const response = await axios.get(`http://localhost:3001/search/${keyword}`)
+      const response = await axios.get(`http://localhost:3001/api/search/${keyword}`)
       setSearchSuggest(response.data);
     } catch (err) {
       console.log(err.message)
