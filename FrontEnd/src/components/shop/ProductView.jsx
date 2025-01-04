@@ -41,7 +41,7 @@ const ProductView = ({handleAlert}) => {
 
     const getProductById = async () => {
         try {
-            const response = await axios.get(`http://localhost:3001/api/shop/${id}`);
+            const response = await axios.get(`http://cawop.h.filess.io:3307/api/shop/${id}`);
             setProductName(response.data.nama);
             setHarga(response.data.harga);
             setLokasi(response.data.lokasi);
@@ -62,7 +62,7 @@ const ProductView = ({handleAlert}) => {
         setIsLocked(true);
 
         try {
-            await axios.post('http://localhost:3001/api/cart', {
+            await axios.post('http://cawop.h.filess.io:3307/api/cart', {
                 id,
                 username,
                 productName,
@@ -114,7 +114,7 @@ const ProductView = ({handleAlert}) => {
             tanggal: currentDate    
         }
         try {
-            await axios.post('http://localhost:3001/api/checkoutOneItem', payload)
+            await axios.post('http://cawop.h.filess.io:3307/api/checkoutOneItem', payload)
             alert('checkout berhasil')
             handleKonfirmasiPembelian()
         } catch (error) {

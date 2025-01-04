@@ -69,7 +69,7 @@ const MainPage = ( {trendingProductRef, allProductRef} ) => {
     const getTrendingProduct = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('http://localhost:3001/api/trending');
+            const response = await axios.get('http://cawop.h.filess.io:3307/api/trending');
             setTrendingProduct(response.data);
             console.log(response.data);
         } catch (error) {
@@ -84,8 +84,8 @@ const MainPage = ( {trendingProductRef, allProductRef} ) => {
         try {
             const response = await axios.get(
                 selectedCategories.length > 0
-                ? `http://localhost:3001/api/filter/${selectedCategories.join(',')}`
-                : 'http://localhost:3001/api/product'
+                ? `http://cawop.h.filess.io:3307/api/filter/${selectedCategories.join(',')}`
+                : 'http://cawop.h.filess.io:3307/api/product'
             )
             setProduct(response.data);
             console.log(response.data);

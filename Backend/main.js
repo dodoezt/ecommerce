@@ -2,17 +2,27 @@ import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
+import dotenv from 'dotenv'
 
 const port = process.env.PORT || 3001;
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// const pool = mysql.createPool({
+//     host: process.env.DB_HOST,
+//     user: process.env.DB_USER,
+//     password: process.env.DB_PASSWORD, 
+//     database: process.env.DB_NAME,
+//     port: process.env.DB_PORT, 
+// });
+
 const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'dodoezt',
-    password: 'aldo8765', 
-    database: 'e_commerce_db' 
+    host: "cawop.h.filess.io",
+    user: "ecommerceDB_biggerneck",
+    password: "a5716eccc988a6c8f19732fa4709a855a7b1994b", 
+    database: "ecommerceDB_biggerneck",
+    port: 3307, 
 });
 
 // Routes
