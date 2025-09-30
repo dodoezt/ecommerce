@@ -18,11 +18,10 @@ app.use(express.json());
 // });
 
 const pool = mysql.createPool({
-    host: "cawop.h.filess.io",
-    user: "ecommerceDB_biggerneck",
-    password: "a5716eccc988a6c8f19732fa4709a855a7b1994b", 
-    database: "ecommerceDB_biggerneck",
-    port: 3307, 
+    host: "localhost",
+    user: "root", 
+    database: "e_commerce_db",
+    port: 3306, 
 });
 
 // Routes
